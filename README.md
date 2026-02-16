@@ -1,3 +1,59 @@
-# Pílulas IA Pipeline
+# Jogo da Velha Online 🎮
 
-Projeto para pipeline de processamento de pílulas de IA.
+Jogo da velha multiplayer em tempo real construído com Next.js no frontend e AWS Lambda com WebSocket API Gateway no backend.
+
+## 🏗️ Arquitetura
+
+- **Frontend:** Next.js 14+ com App Router
+- **Backend:** AWS Lambda com WebSocket API Gateway
+- **Infraestrutura:** Serverless Framework
+- **Banco de Dados:** DynamoDB para estado do jogo
+- **CI/CD:** GitHub Actions com OIDC authentication
+- **Comunicação:** WebSocket para tempo real
+
+## 📚 Documentação
+
+Este projeto inclui documentação completa para facilitar a reprodução em workshops:
+
+- **[SETUP.md](docs/SETUP.md)** - Guia de configuração inicial e pré-requisitos
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura detalhada e decisões de design
+- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Guia passo a passo de deployment
+- **[OIDC-SETUP.md](docs/OIDC-SETUP.md)** - Guia visual para criar OIDC Provider no Console AWS
+- **[WORKSHOP.md](docs/WORKSHOP.md)** - Guia completo para recriar o projeto do zero
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Solução de problemas comuns
+
+## 🚀 Início Rápido
+
+1. Siga o guia de [SETUP.md](docs/SETUP.md) para configurar o ambiente
+2. Configure as credenciais AWS e OIDC conforme [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+3. Execute o deployment via GitHub Actions ou localmente
+
+## 🎯 Para Workshops
+
+Se você está participando de um workshop ou quer recriar o projeto do zero, siga o guia completo em **[WORKSHOP.md](docs/WORKSHOP.md)**. Este documento contém todos os passos necessários para construir o projeto desde o início.
+
+## 📁 Estrutura do Projeto
+
+```
+pilulas-ia-pipeline/
+├── frontend/          # Aplicação Next.js
+├── backend/           # Serverless Framework + Lambda
+├── infrastructure/    # Templates CloudFormation
+├── .github/           # GitHub Actions workflows
+└── docs/              # Documentação completa
+```
+
+## 🛠️ Tecnologias
+
+- Next.js 14+
+- React 18+
+- TypeScript 5+
+- Serverless Framework 3.x
+- AWS Lambda (Node.js 18+)
+- AWS API Gateway (WebSocket)
+- Amazon DynamoDB
+- GitHub Actions
+
+## 📝 Licença
+
+Este projeto é para fins educacionais e de workshop.

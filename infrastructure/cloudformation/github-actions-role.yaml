@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM Role for GitHub Actions OIDC - Jogo da Velha Online'
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: 'GitHub owner/organization (e.g., rtsarakaki). Leave empty to allow all repos from account.'
+    Default: ''
+
+  GitHubRepository:
+    Type: String
+    Description: 'Optional - Specific repository in format owner/repo-name (e.g., rtsarakaki/pilulas-ia-pipeline). Leave empty to allow all repos from owner.'
+    Default: ''
+
+  AllowedBranch:
+    Type: String
+    Description: 'Optional - Specific branch to allow. Leave empty to allow all branches. Example: main'
+    Default: ''
+
+Conditions:
+  HasGitHubOwner: !Not [!Equals [!Ref GitHubOwner, '']]
+  HasGitHubRepository: !Not [!Equals [!Ref GitHubRepository, '']]
+  HasAllowedBranch: !Not [!Equals [!Ref AllowedBranch, '']]
+
+Resources:
+  GitHubActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: github-actions-deploy-role
+      Description: 'Role for GitHub Actions to deploy Jogo da Velha Online infrastructure'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub 'arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com'
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  !If
+                    - HasGitHubRepository
+                    - !If
+                        - HasAllowedBranch
+                        - !Join
+                            - ''
+                            - - 'repo:'
+                              - !Ref GitHubRepository
+                              - ':ref:refs/heads/'
+                              - !Ref AllowedBranch
+                        - !Join
+                            - ''
+                            - - 'repo:'
+                              - !Ref GitHubRepository
+                              - ':*'
+                    - !If
+                        - HasGitHubOwner
+                        - !If
+                            - HasAllowedBranch
+                            - !Join
+                                - ''
+                                - - 'repo:'
+                                  - !Ref GitHubOwner
+                                  - '/*:ref:refs/heads/'
+                                  - !Ref AllowedBranch
+                            - !Join
+                                - ''
+                                - - 'repo:'
+                                  - !Ref GitHubOwner
+                                  - '/*:*'
+                        - 'repo:*:*'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      MaxSessionDuration: 3600
+
+Outputs:
+  RoleArn:
+    Description: 'ARN of the IAM Role for GitHub Actions'
+    Value: !GetAtt GitHubActionsRole.Arn
+    Export:
+      Name: GitHubActionsRoleArn
+
+  GitHubScope:
+    Description: 'GitHub scope that can assume this role'
+    Value: !If
+      - HasGitHubRepository
+      - !Ref GitHubRepository
+      - !If
+          - HasGitHubOwner
+          - !Sub '${GitHubOwner}/*'
+          - '* (all repositories)'
