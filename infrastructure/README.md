@@ -170,7 +170,6 @@ Branch específica permitida para assumir a role. Se deixado vazio, todas as bra
 
 Exemplos:
 - `main` - Apenas branch main
-- `develop` - Apenas branch develop
 - (vazio) - Todas as branches
 
 ## 💡 Exemplos de Uso

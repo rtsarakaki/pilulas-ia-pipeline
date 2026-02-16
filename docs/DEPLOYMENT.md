@@ -291,15 +291,17 @@ O frontend será deployado automaticamente via integração do repositório GitH
 ```bash
 git add .
 git commit -m "feat: initial deployment setup"
-git push origin develop
+git push origin main
 ```
+
+**Regra deste fluxo:** faça push diretamente na branch `main` do repositório (sem usar branch adicional).
 
 ### 6.2 Executar Workflow
 
 1. Vá para **Actions** no GitHub
 2. Selecione o workflow **Deploy**
 3. Clique em **Run workflow**
-4. Selecione a branch `develop`
+4. Selecione a branch `main`
 5. Clique em **Run workflow**
 
 ### 6.3 Monitorar Deployment
@@ -372,7 +374,7 @@ Envie uma mensagem de teste:
 Para atualizar o projeto:
 
 1. Faça alterações no código
-2. Commit e push para `develop`
+2. Commit e push para `main`
 3. O workflow executará automaticamente (se configurado)
 4. Ou execute manualmente via GitHub Actions
 

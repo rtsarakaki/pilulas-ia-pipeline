@@ -18,10 +18,11 @@ Requisitos:
 8. Configure GitHub Actions workflow
 9. Crie a estrutura de diretórios conforme especificado
 10. Adicione todos os arquivos de configuração (package.json, tsconfig.json, .eslintrc.json, jest.config.js, etc.)
+11. Trabalhe e faça push diretamente na branch main do novo repositório (não crie outras branches para esse fluxo)
 
 O projeto deve estar 100% funcional e pronto para deploy seguindo as instruções do DEPLOYMENT.md.
 
-Após criar tudo, faça commit inicial e push para o repositório.
+Após criar tudo, faça commit inicial e push diretamente para origin/main.
 ```
 
 ## Versão Resumida
@@ -30,7 +31,7 @@ Após criar tudo, faça commit inicial e push para o repositório.
 Siga o guia completo em docs/WORKSHOP.md para criar um novo repositório com o projeto 
 Jogo da Velha Online. Use todos os códigos, configurações e instruções fornecidos no 
 documento. O projeto deve incluir backend (AWS Lambda + WebSocket), frontend (Next.js), 
-Husky para validações, e GitHub Actions para CI/CD.
+Husky para validações, e GitHub Actions para CI/CD. Faça push diretamente na main (sem criar outra branch).
 ```
 
 ## Checklist para IA
@@ -48,7 +49,7 @@ Husky para validações, e GitHub Actions para CI/CD.
 - [ ] Configurar Husky e hooks
 - [ ] Criar workflow GitHub Actions
 - [ ] Adicionar documentação básica
-- [ ] Fazer commit inicial
+- [ ] Fazer commit inicial e push direto na main
 
 ## Como Usar
 
