@@ -1182,11 +1182,11 @@ jobs:
           echo "url=$URL" >> $GITHUB_OUTPUT
       
       - name: Output WebSocket URL
-        run: echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
+        run: |
+          echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
 ```
 
 **Nota:** O frontend será deployado automaticamente via integração do repositório GitHub com Vercel (veja seção 4.4 abaixo).
-```
 
 ### 4.2 Configurar OIDC (Ver DEPLOYMENT.md)
 
@@ -1228,6 +1228,8 @@ O frontend será deployado via integração do repositório GitHub com Vercel:
 **Nota:** Após cada push no repositório, o Vercel fará deploy automático do frontend.
 
 ### 4.5 Fazer Commit e Push
+
+**Importante:** para este fluxo, faça push diretamente na branch `main` (sem criar branch adicional).
 
 ```bash
 git add .

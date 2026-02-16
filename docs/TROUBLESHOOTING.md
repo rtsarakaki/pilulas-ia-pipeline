@@ -76,6 +76,26 @@ Este documento contém soluções para problemas comuns encontrados durante o de
    aws iam get-policy-version --policy-arn arn:aws:iam::ACCOUNT_ID:policy/GitHubActionsDeployPolicy --version-id v1
    ```
 
+### Erro: "Invalid workflow file: .github/workflows/deploy.yml#L54"
+
+**Sintomas:**
+- O GitHub Actions falha antes de iniciar os jobs
+- Mensagem: `You have an error in your yaml syntax on line 54`
+
+**Causa comum:**
+- Uso de comando `run:` inline com `:` no texto do `echo`, por exemplo:
+  ```yaml
+  run: echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
+  ```
+
+**Solução:**
+- Troque para bloco multilinha no step:
+  ```yaml
+  - name: Output WebSocket URL
+    run: |
+      echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
+  ```
+
 ### Erro: "Resource already exists" no Serverless
 
 **Sintomas:**
