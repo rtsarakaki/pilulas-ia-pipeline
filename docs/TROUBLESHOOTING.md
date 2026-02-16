@@ -15,7 +15,7 @@ Este documento contém soluções para problemas comuns encontrados durante o de
 1. **Verificar URL do WebSocket:**
    ```bash
    # No backend, após deploy
-   serverless info --stage dev
+   npx serverless info --stage dev
    ```
    Certifique-se de que `NEXT_PUBLIC_WS_URL` no frontend está correto.
 
@@ -76,25 +76,33 @@ Este documento contém soluções para problemas comuns encontrados durante o de
    aws iam get-policy-version --policy-arn arn:aws:iam::ACCOUNT_ID:policy/GitHubActionsDeployPolicy --version-id v1
    ```
 
-### Erro: "Invalid workflow file: .github/workflows/deploy.yml#L54"
+### Erro: "No version found for 3" no `serverless deploy`
 
 **Sintomas:**
-- O GitHub Actions falha antes de iniciar os jobs
-- Mensagem: `You have an error in your yaml syntax on line 54`
+- Workflow falha no passo `Run serverless deploy --stage dev`
+- Mensagem: `No version found for 3`
 
-**Causa comum:**
-- Uso de comando `run:` inline com `:` no texto do `echo`, por exemplo:
-  ```yaml
-  run: echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
-  ```
+**Causa provável:**
+- O projeto está com `frameworkVersion` 3.x, mas o pipeline instalou Serverless CLI mais novo (v4), que não resolve corretamente a versão `3` em alguns cenários.
 
-**Solução:**
-- Troque para bloco multilinha no step:
-  ```yaml
-  - name: Output WebSocket URL
-    run: |
-      echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
-  ```
+**Soluções:**
+
+1. **Fixar Serverless v3 no ambiente local (se usar instalação global):**
+   ```bash
+   npm install -g serverless@3
+   serverless --version
+   ```
+
+2. **Preferir a CLI local do projeto no CI/CD:**
+   ```bash
+   cd backend
+   npm ci
+   npx serverless deploy --stage dev
+   ```
+
+3. **No workflow, evitar `npm install -g serverless` sem versão:**
+   - Use `npx serverless ...` após instalar as dependências do backend
+   - Ou, se precisar global, use explicitamente `npm install -g serverless@3`
 
 ### Erro: "Resource already exists" no Serverless
 
@@ -107,7 +115,7 @@ Este documento contém soluções para problemas comuns encontrados durante o de
 1. **Remover stack anterior:**
    ```bash
    cd backend
-   serverless remove --stage dev
+   npx serverless remove --stage dev
    ```
 
 2. **Verificar recursos órfãos:**
@@ -151,7 +159,7 @@ Este documento contém soluções para problemas comuns encontrados durante o de
 3. **Atualizar permissões:**
    ```bash
    cd backend
-   serverless deploy function -f connect --stage dev
+   npx serverless deploy function -f connect --stage dev
    ```
 
 ## 🎮 Problemas no Jogo
@@ -244,8 +252,8 @@ aws logs tail /aws/lambda/tic-tac-toe-backend-dev-game --follow
 
 # Ou usando serverless
 cd backend
-serverless logs -f connect --tail --stage dev
-serverless logs -f game --tail --stage dev
+npx serverless logs -f connect --tail --stage dev
+npx serverless logs -f game --tail --stage dev
 ```
 
 ### Como inspecionar estado do DynamoDB
