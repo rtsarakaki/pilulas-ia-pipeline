@@ -1,16 +1,22 @@
 # Guia de Deployment
 
-Este documento descreve o processo completo de deployment do projeto, incluindo configuração de OIDC, IAM Roles e GitHub Actions.
+Este documento descreve o processo completo de deployment do projeto:
+- **Backend:** Deploy via GitHub Actions com Serverless Framework
+- **Frontend:** Deploy via integração do repositório GitHub com Vercel (pelo painel da Vercel)
+
+Inclui também configuração de OIDC, IAM Roles e GitHub Actions.
 
 ## 📋 Pré-requisitos
 
 Antes de começar, certifique-se de ter:
 
-1. ✅ Conta AWS configurada com credenciais
-2. ✅ AWS CLI instalado e configurado
-3. ✅ Serverless Framework instalado
+1. ✅ Conta AWS ativa (acesso ao Console AWS)
+2. ✅ Serverless Framework instalado (opcional, apenas para deploy manual)
 4. ✅ Repositório GitHub criado
 5. ✅ Acesso de administrador ao repositório
+6. ✅ Husky instalado e configurado (veja [SETUP.md](SETUP.md))
+7. ✅ Cobertura de testes de pelo menos 80% (validada pelo Husky no pre-push)
+8. ✅ Lint e TypeScript configurados (validados pelo Husky no pre-push)
 
 ## 🔐 Passo 1: Configurar OIDC no GitHub
 
@@ -44,18 +50,12 @@ Siga estes passos no Console da AWS:
 
 **Nota:** O thumbprint é calculado automaticamente pelo console. Se precisar verificar o thumbprint atual, consulte: https://github.blog/changelog/2022-01-13-github-actions-update-on-oidc-based-deployments-to-aws/
 
-### 1.2 Verificar OIDC Provider (Opcional via CLI)
+### 1.2 Verificar OIDC Provider
 
-Se você tiver AWS CLI configurado, pode verificar:
-
-```bash
-aws iam list-open-id-connect-providers
-```
-
-Você deve ver o provider criado com ARN similar a:
-```
-arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com
-```
+Após criar o provider no Console AWS, você pode verificar visualmente:
+- Volte para **Identity providers** no Console IAM
+- O provider `token.actions.githubusercontent.com` deve estar listado
+- O ARN será similar a: `arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com`
 
 ## 🏗️ Passo 2: Criar IAM Role para GitHub Actions
 
@@ -211,13 +211,18 @@ O workflow já deve estar configurado em `.github/workflows/deploy.yml`. Verifiq
 - Configuração de OIDC
 - Assumção da role AWS
 - Deploy do backend com Serverless Framework
-- Build e deploy do frontend
 
-## 🔧 Passo 5: Deploy Manual (Primeira Vez)
+**Nota:** O frontend será deployado via integração com Vercel pelo painel da Vercel (não via GitHub Actions).
 
-Antes de usar GitHub Actions, faça um deploy manual para testar:
+## 🔧 Passo 5: Deploy Manual (Opcional)
 
-### 5.1 Deploy do Backend
+Se você quiser fazer um deploy manual antes de usar GitHub Actions (opcional):
+
+**Nota:** Para fazer deploy manual, você precisará configurar AWS CLI com credenciais. O deploy via GitHub Actions (recomendado) não requer credenciais locais.
+
+### 5.1 Deploy do Backend (Opcional)
+
+Se você tiver AWS CLI configurado:
 
 ```bash
 cd backend
@@ -229,6 +234,8 @@ serverless deploy --stage dev
 ```
 wss://abc123.execute-api.us-east-1.amazonaws.com/dev
 ```
+
+**Recomendação:** Use o deploy via GitHub Actions (Passo 6) que não requer credenciais locais.
 
 ### 5.2 Configurar Frontend
 
@@ -247,23 +254,35 @@ npm run dev
 
 Acesse `http://localhost:3000` e teste a conexão WebSocket.
 
-### 5.4 Deploy do Frontend
+### 5.4 Integrar Frontend com Vercel
 
-**Opção 1: Vercel (Recomendado)**
+O frontend será deployado automaticamente via integração do repositório GitHub com Vercel:
 
-```bash
-npm install -g vercel
-vercel
-```
+1. **Acesse o painel da Vercel:**
+   - Vá para https://vercel.com
+   - Faça login com sua conta GitHub
 
-Siga as instruções e adicione a variável de ambiente `NEXT_PUBLIC_WS_URL`.
+2. **Adicionar Projeto:**
+   - Clique em **"Add New Project"**
+   - Selecione o repositório `pilulas-ia-pipeline`
+   - Configure:
+     - **Framework Preset:** Next.js
+     - **Root Directory:** `frontend`
+     - **Build Command:** `npm run build`
+     - **Output Directory:** `.next`
 
-**Opção 2: Build Estático**
+3. **Configurar Variáveis de Ambiente:**
+   - Na página do projeto, vá em **Settings → Environment Variables**
+   - Adicione:
+     - **Name:** `NEXT_PUBLIC_WS_URL`
+     - **Value:** A URL do WebSocket retornada no deploy do backend (ex: `wss://abc123.execute-api.us-east-1.amazonaws.com/dev`)
+     - **Environment:** Production, Preview, Development (marque todos)
 
-```bash
-npm run build
-npm run start
-```
+4. **Deploy:**
+   - Clique em **"Deploy"**
+   - O Vercel fará o deploy automaticamente e fornecerá uma URL
+
+**Nota:** Após cada push no repositório, o Vercel fará deploy automático do frontend.
 
 ## 🤖 Passo 6: Deploy via GitHub Actions
 
@@ -290,31 +309,44 @@ Acompanhe os logs do workflow. O deployment deve:
 2. ✅ Assumir role AWS
 3. ✅ Deploy do backend
 4. ✅ Obter URL do WebSocket
-5. ✅ Build do frontend
-6. ✅ Deploy do frontend
 
-### 6.4 Obter URL do WebSocket
+### 6.4 Obter URL do WebSocket e Configurar Vercel
 
-Após o deploy, o workflow deve outputar a URL do WebSocket. Use-a para atualizar o frontend.
+Após o deploy do backend, o workflow deve outputar a URL do WebSocket. Use-a para configurar a variável de ambiente no Vercel:
+
+1. Copie a URL do WebSocket retornada
+2. Acesse o painel da Vercel → Seu projeto → Settings → Environment Variables
+3. Adicione ou atualize `NEXT_PUBLIC_WS_URL` com a URL do WebSocket
+4. O Vercel fará um novo deploy automaticamente
 
 ## ✅ Passo 7: Verificação Pós-Deployment
 
 ### 7.1 Verificar Recursos AWS
 
+Você pode verificar os recursos criados no Console AWS:
+
+1. **Lambda Functions:**
+   - Console AWS → Lambda → Functions
+   - Procure por funções com nome contendo `tic-tac-toe-backend-dev`
+
+2. **API Gateway:**
+   - Console AWS → API Gateway → APIs
+   - Procure por APIs WebSocket com nome contendo `tic-tac-toe`
+
+3. **DynamoDB Tables:**
+   - Console AWS → DynamoDB → Tables
+   - Procure por tabelas com nome contendo `tic-tac-toe-backend`
+
+**Nota:** Se você tiver AWS CLI configurado (opcional), pode usar os comandos:
 ```bash
-# Listar Lambda functions
 aws lambda list-functions --query 'Functions[?contains(FunctionName, `tic-tac-toe`)].FunctionName'
-
-# Listar API Gateways
 aws apigatewayv2 get-apis --query 'Items[?contains(Name, `tic-tac-toe`)].Name'
-
-# Listar DynamoDB tables
 aws dynamodb list-tables --query 'TableNames[?contains(@, `tic-tac-toe`)]'
 ```
 
 ### 7.2 Testar WebSocket
 
-Use uma ferramenta como `wscat`:
+Use uma ferramenta como `wscat` (instale via npm):
 
 ```bash
 npm install -g wscat
@@ -325,6 +357,8 @@ Envie uma mensagem de teste:
 ```json
 {"action": "connect"}
 ```
+
+**Alternativa:** Você pode testar diretamente no frontend após configurar a variável de ambiente no Vercel.
 
 ### 7.3 Testar Aplicação
 
@@ -353,6 +387,15 @@ serverless remove --stage dev
 
 ### 9.2 Remover IAM Role
 
+**Opção 1: Via Console AWS (Recomendado)**
+
+1. Console AWS → IAM → Roles
+2. Selecione a role `github-actions-deploy-role`
+3. Clique em **"Delete role"**
+4. Confirme a exclusão
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
+
 ```bash
 aws iam detach-role-policy \
   --role-name GitHubActionsDeployRole \
@@ -362,6 +405,15 @@ aws iam delete-role --role-name GitHubActionsDeployRole
 ```
 
 ### 9.3 Remover OIDC Provider
+
+**Opção 1: Via Console AWS (Recomendado)**
+
+1. Console AWS → IAM → Identity providers
+2. Selecione o provider `token.actions.githubusercontent.com`
+3. Clique em **"Delete"**
+4. Confirme a exclusão
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
 
 ```bash
 aws iam delete-open-id-connect-provider \

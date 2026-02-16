@@ -45,23 +45,38 @@ Este template cria uma IAM Role que permite ao GitHub Actions fazer deploy na AW
 
 #### Deploy do Template
 
+**Opção 1: Via Console AWS (Recomendado - sem necessidade de AWS CLI)**
+
+1. Acesse o Console AWS → CloudFormation
+2. Clique em **"Create stack"** → **"With new resources (standard)"**
+3. Em **"Template source"**, selecione **"Upload a template file"**
+4. Faça upload do arquivo `infrastructure/cloudformation/github-actions-role.yaml`
+5. Clique em **"Next"**
+6. Configure os parâmetros:
+   - **GitHubOwner:** `rtsarakaki` (ou seu usuário/organização)
+   - **GitHubRepository:** (deixe vazio para permitir todos os repositórios)
+   - **AllowedBranch:** (deixe vazio para permitir todas as branches)
+7. Clique em **"Next"** → **"Next"** → **"Submit"**
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
+
 ```bash
 cd infrastructure/cloudformation
 
-# Opção 1: Permitir TODOS os repositórios da sua conta (mais flexível)
+# Permitir TODOS os repositórios da sua conta
 aws cloudformation create-stack \
   --stack-name github-actions-role \
   --template-body file://github-actions-role.yaml \
   --parameters ParameterKey=GitHubOwner,ParameterValue=rtsarakaki
 
-# Opção 2: Permitir repositório específico
+# Permitir repositório específico
 aws cloudformation create-stack \
   --stack-name github-actions-role \
   --template-body file://github-actions-role.yaml \
   --parameters \
     ParameterKey=GitHubRepository,ParameterValue=rtsarakaki/pilulas-ia-pipeline
 
-# Opção 3: Permitir repositório específico + branch específica (mais seguro)
+# Permitir repositório específico + branch específica
 aws cloudformation create-stack \
   --stack-name github-actions-role \
   --template-body file://github-actions-role.yaml \
@@ -72,7 +87,14 @@ aws cloudformation create-stack \
 
 #### Obter ARN da Role
 
-Após o deploy, obtenha o ARN da role:
+**Opção 1: Via Console AWS (Recomendado)**
+
+1. Console AWS → CloudFormation → Stacks
+2. Selecione a stack `github-actions-role`
+3. Vá na aba **"Outputs"**
+4. Copie o valor de **"RoleArn"**
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
 
 ```bash
 aws cloudformation describe-stacks \
@@ -83,11 +105,20 @@ aws cloudformation describe-stacks \
 
 Este ARN deve ser adicionado como secret no GitHub:
 - Nome do secret: `AWS_ROLE_ARN`
-- Valor: O ARN retornado acima
+- Valor: O ARN copiado acima
 
 #### Atualizar Stack
 
-Se precisar atualizar a role:
+**Opção 1: Via Console AWS (Recomendado)**
+
+1. Console AWS → CloudFormation → Stacks
+2. Selecione a stack `github-actions-role`
+3. Clique em **"Update"**
+4. Selecione **"Replace current template"**
+5. Faça upload do template atualizado
+6. Configure os parâmetros e finalize
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
 
 ```bash
 aws cloudformation update-stack \
@@ -100,7 +131,14 @@ aws cloudformation update-stack \
 
 #### Remover Stack
 
-Para remover a role e todos os recursos:
+**Opção 1: Via Console AWS (Recomendado)**
+
+1. Console AWS → CloudFormation → Stacks
+2. Selecione a stack `github-actions-role`
+3. Clique em **"Delete"**
+4. Confirme a exclusão
+
+**Opção 2: Via AWS CLI (se tiver configurado)**
 
 ```bash
 aws cloudformation delete-stack --stack-name github-actions-role

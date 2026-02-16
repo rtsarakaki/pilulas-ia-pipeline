@@ -23,17 +23,15 @@ Este documento descreve todos os pré-requisitos e configurações necessárias 
    git --version
    ```
 
-4. **AWS CLI** (versão 2.x)
-   ```bash
-   aws --version
-   ```
-   - Instalação: https://aws.amazon.com/cli/
-
-5. **Serverless Framework**
+4. **Serverless Framework**
    ```bash
    npm install -g serverless
    serverless --version
    ```
+
+5. **Husky** (para validação de qualidade de código via Git hooks)
+   - Será instalado automaticamente via npm ao instalar dependências do projeto
+   - Documentação: https://typicode.github.io/husky/
 
 6. **Conta AWS** com permissões para:
    - Lambda
@@ -59,39 +57,46 @@ cd pilulas-ia-pipeline
 git checkout develop
 ```
 
-### 2. Configurar AWS CLI
+### 2. Instalar Dependências do Backend
 
-```bash
-aws configure
-```
-
-Você precisará fornecer:
-- **AWS Access Key ID**
-- **AWS Secret Access Key**
-- **Default region name:** `us-east-1`
-- **Default output format:** `json`
-
-### 3. Verificar Credenciais AWS
-
-```bash
-aws sts get-caller-identity
-```
-
-Este comando deve retornar informações sobre sua conta AWS.
-
-### 4. Instalar Dependências do Backend
+**Nota:** Não é necessário configurar AWS CLI localmente. O deploy será feito via GitHub Actions usando OIDC (sem necessidade de credenciais locais).
 
 ```bash
 cd backend
 npm install
 ```
 
-### 5. Instalar Dependências do Frontend
+### 3. Instalar Dependências do Frontend
 
 ```bash
 cd ../frontend
 npm install
 ```
+
+### 4. Configurar Husky
+
+O projeto utiliza Husky para validar qualidade de código antes de cada push. As validações incluem:
+- **Lint** (ESLint) - validação de código
+- **TypeScript** (tsc) - verificação de tipos
+- **Cobertura de testes** - mínimo de 80%
+
+```bash
+# Na raiz do projeto
+cd /home/usuario/Documentos/git/youtube-channel-projects/pilulas-ia-pipeline
+
+# Instalar dependências (Husky será instalado automaticamente)
+npm install
+
+# Inicializar Husky (se ainda não estiver inicializado)
+npx husky install
+
+# Testar hooks manualmente
+npm run lint
+npm run type-check
+npm test -- --coverage
+```
+
+**Importante:** O Husky valida lint, TypeScript e cobertura de testes (80% mínimo) antes de permitir push. Se alguma validação falhar, o push será bloqueado.
 
 ## 🔐 Configuração de Credenciais
 
@@ -154,18 +159,84 @@ Execute os seguintes comandos para verificar se tudo está configurado corretame
 # Verificar Node.js
 node --version
 
-# Verificar AWS CLI
-aws sts get-caller-identity
-
 # Verificar Serverless Framework
 serverless --version
+
+# Verificar Husky
+npx husky --version
 
 # Verificar dependências do backend
 cd backend && npm list --depth=0
 
 # Verificar dependências do frontend
 cd ../frontend && npm list --depth=0
+
+# Testar validações (lint, tsc, testes)
+cd .. && npm run lint
+npm run type-check
+npm test -- --coverage
 ```
+
+## 🧪 Validações Automáticas (Husky)
+
+O projeto utiliza Husky para validar automaticamente antes de cada push:
+
+1. **Lint (ESLint)** - Validação de código
+2. **TypeScript (tsc)** - Verificação de tipos
+3. **Cobertura de Testes** - Mínimo de 80%
+
+Todas as validações são executadas no hook `pre-push` do Git.
+
+### Executar Testes e Verificar Cobertura
+
+```bash
+# Backend
+cd backend
+npm test -- --coverage
+
+# Frontend
+cd ../frontend
+npm test -- --coverage
+```
+
+### Se Alguma Validação Falhar
+
+O Husky bloqueará o push. Para resolver:
+
+1. **Erros de Lint:**
+   ```bash
+   npm run lint
+   # Corrija os erros indicados
+   npm run lint -- --fix  # Auto-corrigir quando possível
+   ```
+
+2. **Erros de TypeScript:**
+   ```bash
+   npm run type-check
+   # Corrija os erros de tipo indicados
+   ```
+
+3. **Cobertura Abaixo de 80%:**
+   ```bash
+   npm test -- --coverage
+   # Verifique quais arquivos não estão cobertos
+   # Adicione testes para aumentar a cobertura
+   ```
+
+4. Tente fazer push novamente:
+   ```bash
+   git push
+   ```
+
+### Pular Validação (Não Recomendado)
+
+Se precisar fazer push sem passar pela validação (não recomendado):
+
+```bash
+git push --no-verify
+```
+
+⚠️ **Atenção:** Use apenas em casos excepcionais. As validações são requisitos do projeto.
 
 ## 🚀 Próximos Passos
 
@@ -177,7 +248,13 @@ Após completar o setup:
 
 ## 📚 Referências
 
-- [AWS CLI Installation](https://aws.amazon.com/cli/)
 - [Serverless Framework Documentation](https://www.serverless.com/framework/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [GitHub Actions OIDC](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [Husky Documentation](https://typicode.github.io/husky/)
+
+## 💡 Nota sobre AWS CLI
+
+**Não é necessário configurar AWS CLI localmente.** O projeto utiliza GitHub Actions com OIDC para fazer deploy na AWS sem necessidade de credenciais locais. 
+
+Se você precisar fazer deploy manual (opcional), pode instalar e configurar AWS CLI, mas isso não é obrigatório para o workflow padrão do projeto.

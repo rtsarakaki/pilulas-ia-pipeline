@@ -24,8 +24,7 @@ Construir um jogo da velha multiplayer em tempo real usando:
 Antes de começar, verifique:
 
 - [ ] Node.js 18+ instalado
-- [ ] AWS CLI configurado
-- [ ] Conta AWS ativa
+- [ ] Conta AWS ativa (acesso ao Console AWS)
 - [ ] Conta GitHub ativa
 - [ ] Serverless Framework instalado (`npm install -g serverless`)
 - [ ] Git instalado
@@ -111,6 +110,91 @@ npm-debug.log*
 Thumbs.db
 ```
 
+### 1.4 Configurar package.json da Raiz
+
+Crie `package.json` na raiz do projeto:
+
+```json
+{
+  "name": "jogo-da-velha-online",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix --ignore-path .gitignore",
+    "type-check": "tsc --noEmit",
+    "test": "npm run test --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "validate": "npm run lint && npm run type-check && npm run test:coverage"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-next": "^14.0.0",
+    "husky": "^8.0.3",
+    "typescript": "^5.2.2"
+  }
+}
+```
+
+### 1.5 Configurar TypeScript
+
+Crie `tsconfig.json` na raiz:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist", "build", ".next"]
+}
+```
+
+### 1.6 Configurar ESLint
+
+Crie `.eslintrc.json` na raiz:
+
+```json
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  "ignorePatterns": ["node_modules", "dist", "build", ".next", "coverage"]
+}
+```
+
 ## 🏗️ Fase 2: Backend - Serverless Framework (45 min)
 
 ### 2.1 Inicializar Backend
@@ -120,6 +204,72 @@ cd backend
 npm init -y
 npm install serverless serverless-offline
 npm install aws-sdk
+```
+
+### 2.1.1 Configurar package.json do Backend
+
+Atualize `backend/package.json`:
+
+```json
+{
+  "name": "tic-tac-toe-backend",
+  "version": "1.0.0",
+  "description": "Backend serverless para Jogo da Velha Online",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1500.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "collectCoverageFrom": [
+      "functions/**/*.js",
+      "lib/**/*.js",
+      "!**/node_modules/**"
+    ]
+  }
+}
+```
+
+### 2.1.2 Configurar Jest para Backend
+
+Crie `backend/jest.config.js`:
+
+```javascript
+module.exports = {
+  testEnvironment: 'node',
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
+    }
+  },
+  collectCoverageFrom: [
+    'functions/**/*.js',
+    'lib/**/*.js',
+    '!**/node_modules/**'
+  ],
+  testMatch: ['**/__tests__/**/*.test.js', '**/?(*.)+(spec|test).js']
+};
 ```
 
 ### 2.2 Criar serverless.yml
@@ -602,6 +752,98 @@ cd frontend
 npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias "@/*"
 ```
 
+### 3.1.1 Configurar package.json do Frontend
+
+O `create-next-app` já cria um `package.json` básico. Adicione/atualize os scripts e dependências:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@types/jest": "^29.5.8",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "collectCoverageFrom": [
+      "app/**/*.{ts,tsx}",
+      "components/**/*.{ts,tsx}",
+      "hooks/**/*.{ts,tsx}",
+      "lib/**/*.{ts,tsx}",
+      "!**/*.d.ts",
+      "!**/node_modules/**"
+    ]
+  }
+}
+```
+
+### 3.1.2 Configurar Jest para Frontend
+
+Crie `frontend/jest.config.js`:
+
+```javascript
+const nextJest = require('next/jest');
+
+const createJestConfig = nextJest({
+  dir: './',
+});
+
+const customJestConfig = {
+  testEnvironment: 'jest-environment-jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+  collectCoverageFrom: [
+    'app/**/*.{ts,tsx}',
+    'components/**/*.{ts,tsx}',
+    'hooks/**/*.{ts,tsx}',
+    'lib/**/*.{ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+  ],
+};
+
+module.exports = createJestConfig(customJestConfig);
+```
+
+Crie `frontend/jest.setup.js`:
+
+```javascript
+import '@testing-library/jest-dom';
+```
+
 ### 3.2 Configurar Variável de Ambiente
 
 Crie `frontend/.env.local`:
@@ -878,9 +1120,11 @@ npm run dev
 
 Acesse `http://localhost:3000` e teste em dois navegadores.
 
-## 🤖 Fase 4: CI/CD - GitHub Actions (30 min)
+## 🤖 Fase 4: CI/CD - GitHub Actions e Vercel (30 min)
 
-### 4.1 Criar Workflow
+### 4.1 Criar Workflow do GitHub Actions
+
+O workflow do GitHub Actions fará deploy apenas do backend. O frontend será deployado via Vercel.
 
 Crie `.github/workflows/deploy.yml`:
 
@@ -939,28 +1183,9 @@ jobs:
       
       - name: Output WebSocket URL
         run: echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
+```
 
-  deploy-frontend:
-    needs: deploy-backend
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm install
-      
-      - name: Build
-        working-directory: ./frontend
-        run: npm run build
-        env:
-          NEXT_PUBLIC_WS_URL: ${{ needs.deploy-backend.outputs.websocket-url }}
+**Nota:** O frontend será deployado automaticamente via integração do repositório GitHub com Vercel (veja seção 4.4 abaixo).
 ```
 
 ### 4.2 Configurar OIDC (Ver DEPLOYMENT.md)
@@ -972,7 +1197,37 @@ Siga os passos 1 e 2 do [DEPLOYMENT.md](DEPLOYMENT.md) para configurar OIDC e IA
 No GitHub, vá em **Settings → Secrets → Actions** e adicione:
 - `AWS_ROLE_ARN`: ARN da role criada
 
-### 4.4 Fazer Commit e Push
+### 4.4 Integrar Frontend com Vercel
+
+O frontend será deployado via integração do repositório GitHub com Vercel:
+
+1. **Acesse o painel da Vercel:**
+   - Vá para https://vercel.com
+   - Faça login com sua conta GitHub
+
+2. **Adicionar Projeto:**
+   - Clique em **"Add New Project"**
+   - Selecione o repositório `pilulas-ia-pipeline`
+   - Configure:
+     - **Framework Preset:** Next.js
+     - **Root Directory:** `frontend`
+     - **Build Command:** `npm run build`
+     - **Output Directory:** `.next`
+
+3. **Configurar Variáveis de Ambiente:**
+   - Na página do projeto, vá em **Settings → Environment Variables**
+   - Adicione:
+     - **Name:** `NEXT_PUBLIC_WS_URL`
+     - **Value:** A URL do WebSocket retornada no deploy do backend
+     - **Environment:** Production, Preview, Development (marque todos)
+
+4. **Deploy:**
+   - Clique em **"Deploy"**
+   - O Vercel fará o deploy automaticamente
+
+**Nota:** Após cada push no repositório, o Vercel fará deploy automático do frontend.
+
+### 4.5 Fazer Commit e Push
 
 ```bash
 git add .
@@ -980,9 +1235,27 @@ git commit -m "feat: complete game implementation"
 git push origin main
 ```
 
+O GitHub Actions fará deploy do backend e o Vercel fará deploy do frontend automaticamente.
+
 ## ✅ Fase 5: Testes Finais (15 min)
 
-### 5.1 Testar Localmente
+### 5.1 Escrever Testes
+
+Certifique-se de ter cobertura mínima de 80%:
+
+```bash
+# Backend - Executar testes com cobertura
+cd backend
+npm test -- --coverage
+
+# Frontend - Executar testes com cobertura
+cd ../frontend
+npm test -- --coverage
+```
+
+**Importante:** O Husky validará automaticamente lint, TypeScript e cobertura de 80% antes de permitir push.
+
+### 5.2 Testar Localmente
 
 1. Abra dois navegadores
 2. Acesse `http://localhost:3000` em ambos
@@ -990,11 +1263,28 @@ git push origin main
 4. Faça jogadas alternadas
 5. Teste vitória e empate
 
-### 5.2 Testar Deployment
+### 5.3 Testar Deployment
 
-1. Verifique logs do GitHub Actions
+1. Verifique logs do GitHub Actions (deploy do backend)
 2. Confirme que recursos foram criados na AWS
-3. Teste a aplicação em produção
+3. Verifique o deploy do frontend no painel da Vercel
+4. Teste a aplicação em produção (URL fornecida pelo Vercel)
+
+### 5.4 Validar com Husky
+
+Antes de fazer push, teste as validações:
+
+```bash
+# Na raiz do projeto
+npm run validate
+```
+
+Isso executará:
+- `npm run lint` - Validação de código
+- `npm run type-check` - Verificação de tipos TypeScript
+- `npm run test:coverage` - Testes com cobertura mínima de 80%
+
+Se houver erros, corrija antes de fazer push. O Husky bloqueará push se alguma validação falhar.
 
 ## 🎉 Conclusão
 

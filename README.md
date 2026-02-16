@@ -8,7 +8,8 @@ Jogo da velha multiplayer em tempo real construído com Next.js no frontend e AW
 - **Backend:** AWS Lambda com WebSocket API Gateway
 - **Infraestrutura:** Serverless Framework
 - **Banco de Dados:** DynamoDB para estado do jogo
-- **CI/CD:** GitHub Actions com OIDC authentication
+- **CI/CD Backend:** GitHub Actions com OIDC authentication
+- **CI/CD Frontend:** Vercel (integração via painel)
 - **Comunicação:** WebSocket para tempo real
 
 ## 📚 Documentação
@@ -19,18 +20,34 @@ Este projeto inclui documentação completa para facilitar a reprodução em wor
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura detalhada e decisões de design
 - **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Guia passo a passo de deployment
 - **[OIDC-SETUP.md](docs/OIDC-SETUP.md)** - Guia visual para criar OIDC Provider no Console AWS
+- **[TESTING.md](docs/TESTING.md)** - Guia de testes e cobertura (80% mínimo)
 - **[WORKSHOP.md](docs/WORKSHOP.md)** - Guia completo para recriar o projeto do zero
 - **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Solução de problemas comuns
 
 ## 🚀 Início Rápido
 
 1. Siga o guia de [SETUP.md](docs/SETUP.md) para configurar o ambiente
-2. Configure as credenciais AWS e OIDC conforme [DEPLOYMENT.md](docs/DEPLOYMENT.md)
-3. Execute o deployment via GitHub Actions ou localmente
+2. Configure Husky para validação de lint, TypeScript e cobertura de testes (80% mínimo)
+3. Configure as credenciais AWS e OIDC conforme [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+4. Execute o deployment do backend via GitHub Actions
+5. Integre o frontend com Vercel pelo painel da Vercel
+
+## 🧪 Qualidade de Código
+
+Este projeto utiliza **Husky** para validar automaticamente antes de cada push:
+- **Lint (ESLint)** - Validação de código
+- **TypeScript (tsc)** - Verificação de tipos
+- **Cobertura de Testes** - Mínimo de 80%
+
+Veja [TESTING.md](docs/TESTING.md) para mais detalhes.
 
 ## 🎯 Para Workshops
 
 Se você está participando de um workshop ou quer recriar o projeto do zero, siga o guia completo em **[WORKSHOP.md](docs/WORKSHOP.md)**. Este documento contém todos os passos necessários para construir o projeto desde o início.
+
+## 🤖 Para Recriar com IA
+
+Se você quer que uma IA recrie o projeto do zero, use o prompt em **[PROMPT.md](PROMPT.md)**. Este arquivo contém instruções prontas para fornecer à IA.
 
 ## 📁 Estrutura do Projeto
 
