@@ -800,6 +800,43 @@ O `create-next-app` já cria um `package.json` básico. Adicione/atualize os scr
 }
 ```
 
+### 3.1.1.1 Configurar ESLint local do Frontend (importante para Vercel)
+
+Crie `frontend/.eslintrc.json`:
+
+```json
+{
+  "root": true,
+  "extends": ["next/core-web-vitals", "next/typescript"]
+}
+```
+
+> Isso evita que o build do Vercel (quando o **Root Directory** é `frontend`) tente herdar o `../.eslintrc.json` da raiz e falhe por plugin ausente.
+
+### 3.1.1.2 Validar o arquivo `tailwind.config.ts`
+
+Garanta que o arquivo use o tipo `Config` do pacote correto:
+
+```typescript
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './hooks/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+export default config;
+```
+
+> Não use `import type { Config } from 'next';`.
+
 ### 3.1.2 Configurar Jest para Frontend
 
 Crie `frontend/jest.config.js`:

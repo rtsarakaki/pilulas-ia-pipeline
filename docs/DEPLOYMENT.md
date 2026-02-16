@@ -270,6 +270,9 @@ O frontend será deployado automaticamente via integração do repositório GitH
      - **Root Directory:** `frontend`
      - **Build Command:** `npm run build`
      - **Output Directory:** `.next`
+     - **Pré-check de lint/config:**
+       - Garanta que existe `frontend/.eslintrc.json` com `"root": true`
+       - Garanta que `frontend/tailwind.config.ts` usa `import type { Config } from 'tailwindcss'`
 
 3. **Configurar Variáveis de Ambiente:**
    - Na página do projeto, vá em **Settings → Environment Variables**

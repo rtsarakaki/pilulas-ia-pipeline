@@ -139,6 +139,42 @@ Este documento contém soluções para problemas comuns encontrados durante o de
    aws lambda delete-function --function-name tic-tac-toe-backend-dev-connect
    ```
 
+### Erro no Vercel: "Failed to load plugin '@typescript-eslint'" e "Module 'next' has no exported member 'Config'"
+
+**Sintomas:**
+- Build do Vercel falha durante `next build`
+- Mensagem: `Failed to load plugin '@typescript-eslint' declared in '../.eslintrc.json'`
+- Mensagem: `Module '"next"' has no exported member 'Config'`
+
+**Soluções:**
+
+1. **Adicionar ESLint local no frontend (evita herdar config da raiz):**
+   Crie `frontend/.eslintrc.json`:
+   ```json
+   {
+     "root": true,
+     "extends": ["next/core-web-vitals", "next/typescript"]
+   }
+   ```
+
+2. **Corrigir import do `Config` no Tailwind:**
+   No `frontend/tailwind.config.ts`, use:
+   ```typescript
+   import type { Config } from 'tailwindcss';
+   ```
+   Não use:
+   ```typescript
+   import type { Config } from 'next';
+   ```
+
+3. **Se realmente precisar usar `@typescript-eslint` no frontend, instale as dependências no próprio workspace `frontend`:**
+   ```bash
+   cd frontend
+   npm install --save-dev @typescript-eslint/parser @typescript-eslint/eslint-plugin
+   ```
+
+4. **Reexecutar deploy no Vercel após commit/push.**
+
 ### Erro: "Insufficient permissions" no Lambda
 
 **Sintomas:**
