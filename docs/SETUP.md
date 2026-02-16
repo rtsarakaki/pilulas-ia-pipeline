@@ -54,8 +54,10 @@ Este documento descreve todos os pré-requisitos e configurações necessárias 
 ```bash
 git clone https://github.com/rtsarakaki/pilulas-ia-pipeline.git
 cd pilulas-ia-pipeline
-git checkout develop
+git checkout main
 ```
+
+**Importante:** neste fluxo, faça push sempre direto para `main` (`git push origin main`), sem criar branch adicional.
 
 ### 2. Instalar Dependências do Backend
 
@@ -225,7 +227,7 @@ O Husky bloqueará o push. Para resolver:
 
 4. Tente fazer push novamente:
    ```bash
-   git push
+   git push origin main
    ```
 
 ### Pular Validação (Não Recomendado)
@@ -233,7 +235,7 @@ O Husky bloqueará o push. Para resolver:
 Se precisar fazer push sem passar pela validação (não recomendado):
 
 ```bash
-git push --no-verify
+git push origin main --no-verify
 ```
 
 ⚠️ **Atenção:** Use apenas em casos excepcionais. As validações são requisitos do projeto.
