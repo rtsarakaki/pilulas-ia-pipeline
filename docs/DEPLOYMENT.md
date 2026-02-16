@@ -227,7 +227,7 @@ Se você tiver AWS CLI configurado:
 ```bash
 cd backend
 npm install
-serverless deploy --stage dev
+npx serverless deploy --stage dev
 ```
 
 **Anote a URL do WebSocket retornada.** Ela será algo como:
@@ -382,7 +382,7 @@ Para atualizar o projeto:
 
 ```bash
 cd backend
-serverless remove --stage dev
+npx serverless remove --stage dev
 ```
 
 ### 9.2 Remover IAM Role

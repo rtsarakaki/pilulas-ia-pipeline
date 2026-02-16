@@ -25,9 +25,10 @@ Este documento descreve todos os pré-requisitos e configurações necessárias 
 
 4. **Serverless Framework**
    ```bash
-   npm install -g serverless
+   npm install -g serverless@3
    serverless --version
    ```
+   Use a major 3 para manter compatibilidade com o `frameworkVersion` do backend.
 
 5. **Husky** (para validação de qualidade de código via Git hooks)
    - Será instalado automaticamente via npm ao instalar dependências do projeto
@@ -161,6 +162,7 @@ node --version
 
 # Verificar Serverless Framework
 serverless --version
+# Deve exibir versão 3.x
 
 # Verificar Husky
 npx husky --version

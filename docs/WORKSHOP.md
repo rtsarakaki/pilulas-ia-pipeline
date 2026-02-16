@@ -26,7 +26,7 @@ Antes de começar, verifique:
 - [ ] Node.js 18+ instalado
 - [ ] Conta AWS ativa (acesso ao Console AWS)
 - [ ] Conta GitHub ativa
-- [ ] Serverless Framework instalado (`npm install -g serverless`)
+- [ ] Serverless Framework v3 instalado (`npm install -g serverless@3`)
 - [ ] Git instalado
 - [ ] Editor de código (VS Code recomendado)
 
@@ -202,7 +202,7 @@ Crie `.eslintrc.json` na raiz:
 ```bash
 cd backend
 npm init -y
-npm install serverless serverless-offline
+npm install -D serverless@3 serverless-offline
 npm install aws-sdk
 ```
 
@@ -279,7 +279,7 @@ Crie `backend/serverless.yml`:
 ```yaml
 service: tic-tac-toe-backend
 
-frameworkVersion: '3'
+frameworkVersion: '^3.0.0'
 
 provider:
   name: aws
@@ -738,7 +738,7 @@ exports.handler = async (event) => {
 
 ```bash
 cd backend
-serverless deploy --stage dev
+npx serverless deploy --stage dev
 ```
 
 **Anote a URL do WebSocket retornada!**
@@ -1161,16 +1161,13 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Install Serverless Framework
-        run: npm install -g serverless
-      
       - name: Install dependencies
         working-directory: ./backend
-        run: npm install
+        run: npm ci
       
       - name: Deploy backend
         working-directory: ./backend
-        run: serverless deploy --stage dev
+        run: npx serverless deploy --stage dev
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
       
@@ -1178,7 +1175,7 @@ jobs:
         id: websocket
         working-directory: ./backend
         run: |
-          URL=$(serverless info --stage dev | grep -oP 'wss://[^ ]+' | head -1)
+          URL=$(npx serverless info --stage dev | grep -oP 'wss://[^ ]+' | head -1)
           echo "url=$URL" >> $GITHUB_OUTPUT
       
       - name: Output WebSocket URL
