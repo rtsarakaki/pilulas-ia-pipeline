@@ -1150,7 +1150,7 @@ O frontend será deployado via integração do repositório GitHub com Vercel:
 
 ```bash
 git add .
-git commit -m "feat: complete game implementation"
+git commit -m "feat: complete todo list implementation"
 git push origin main
 ```
 
