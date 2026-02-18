@@ -1,339 +1,339 @@
 # Troubleshooting
 
-Este documento contém soluções para problemas comuns encontrados durante o desenvolvimento e deployment do projeto.
+Este documento contém soluções para problemas comuns encontrados durante o desenvolvimento do projeto Jogo da Velha Local.
 
-## 🔌 Problemas de Conexão REST API
+## 🚀 Problemas de Build e Execução
 
-### Erro: "Failed to fetch todos"
-
-**Sintomas:**
-- Frontend não consegue conectar à API REST
-- Mensagem de erro no console do navegador (CORS, 404, etc.)
-
-**Soluções:**
-
-1. **Verificar URL da API:**
-   ```bash
-   # No backend, após deploy
-   npx serverless info --stage dev
-   ```
-   Certifique-se de que `NEXT_PUBLIC_API_URL` no frontend está correto.
-
-2. **Verificar se API Gateway está ativo:**
-   ```bash
-   aws apigateway get-rest-apis --query 'items[?contains(name, `todo-list`)].{Name:name,Id:id}'
-   ```
-
-3. **Verificar CORS:**
-   - Certifique-se de que o API Gateway tem CORS configurado
-   - Verifique se o frontend está usando a URL correta
-
-4. **Verificar logs do CloudWatch:**
-   ```bash
-   aws logs tail /aws/lambda/todo-list-backend-dev-getTodos --follow
-   ```
-
-### Erro: "CORS policy" ou "Connection timeout"
-
-**Soluções:**
-
-1. Verificar se a região AWS está correta
-2. Verificar se há problemas de rede/firewall
-3. Verificar se o API Gateway tem permissões corretas
-4. Verificar configuração de CORS no serverless.yml
-
-## 🚀 Problemas de Deployment
-
-### Erro: "Access Denied" no GitHub Actions
+### Erro: "Module not found" ou "Cannot find module"
 
 **Sintomas:**
-- Workflow falha com erro de permissão
-- Mensagem sobre não poder assumir role
+- Erro ao executar `npm run dev` ou `npm run build`
+- Mensagem sobre módulo não encontrado
 
 **Soluções:**
 
-1. **Verificar OIDC Provider:**
+1. **Verificar se dependências estão instaladas:**
    ```bash
-   aws iam list-open-id-connect-providers
+   npm install
    ```
-   Deve retornar o provider do GitHub.
 
-2. **Verificar Trust Policy da Role:**
+2. **Limpar cache e reinstalar:**
    ```bash
-   aws iam get-role --role-name GitHubActionsDeployRole --query 'Role.AssumeRolePolicyDocument'
-   ```
-   Verifique se o `sub` corresponde ao seu repositório:
-   ```
-   "repo:SEU_USUARIO/SEU_REPO:*"
+   rm -rf node_modules package-lock.json
+   npm install
    ```
 
-3. **Verificar Secrets no GitHub:**
-   - Vá em Settings → Secrets → Actions
-   - Confirme que `AWS_ROLE_ARN` está configurado corretamente
-   - O ARN deve ser completo: `arn:aws:iam::ACCOUNT_ID:role/GitHubActionsDeployRole`
+3. **Verificar se o arquivo existe:**
+   - Confirme que o arquivo mencionado no erro existe
+   - Verifique se o caminho está correto (case-sensitive)
 
-4. **Verificar Permissões da Policy:**
-   ```bash
-   aws iam get-policy --policy-arn arn:aws:iam::ACCOUNT_ID:policy/GitHubActionsDeployPolicy
-   aws iam get-policy-version --policy-arn arn:aws:iam::ACCOUNT_ID:policy/GitHubActionsDeployPolicy --version-id v1
-   ```
-
-### Erro: "No version found for 3" no `serverless deploy`
+### Erro: "Port 3000 is already in use"
 
 **Sintomas:**
-- Workflow falha no passo `Run serverless deploy --stage dev`
-- Mensagem: `No version found for 3`
-
-**Causa provável:**
-- O projeto está com `frameworkVersion` 3.x, mas o pipeline instalou Serverless CLI mais novo (v4), que não resolve corretamente a versão `3` em alguns cenários.
+- Erro ao executar `npm run dev`
+- Mensagem: "Port 3000 is already in use"
 
 **Soluções:**
 
-1. **Fixar Serverless v3 no ambiente local (se usar instalação global):**
+1. **Encontrar processo usando a porta:**
    ```bash
-   npm install -g serverless@3
-   serverless --version
-   ```
-
-2. **Preferir a CLI local do projeto no CI/CD:**
-   ```bash
-   cd backend
-   npm ci
-   npx serverless deploy --stage dev
-   ```
-
-3. **No workflow, evitar `npm install -g serverless` sem versão:**
-   - Use `npx serverless ...` após instalar as dependências do backend
-   - Ou, se precisar global, use explicitamente `npm install -g serverless@3`
-
-### Erro: "Resource already exists" no Serverless
-
-**Sintomas:**
-- Deploy falha porque recurso já existe
-- Conflito de nomes
-
-**Soluções:**
-
-1. **Remover stack anterior:**
-   ```bash
-   cd backend
-   npx serverless remove --stage dev
-   ```
-
-2. **Verificar recursos órfãos:**
-   ```bash
-   # DynamoDB tables
-   aws dynamodb list-tables
+   # Linux/Mac
+   lsof -i :3000
    
-   # Lambda functions
-   aws lambda list-functions --query 'Functions[?contains(FunctionName, `todo-list`)].FunctionName'
-   
-   # API Gateways
-   aws apigateway get-rest-apis --query 'items[?contains(name, `todo-list`)].id'
+   # Windows
+   netstat -ano | findstr :3000
    ```
 
-3. **Remover manualmente se necessário:**
+2. **Matar o processo:**
    ```bash
-   # Remover tabela DynamoDB
-   aws dynamodb delete-table --table-name todo-list-backend-todos-dev
+   # Linux/Mac
+   kill -9 <PID>
    
-   # Remover Lambda
-   aws lambda delete-function --function-name todo-list-backend-dev-getTodos
+   # Windows
+   taskkill /PID <PID> /F
    ```
 
-### Erro: "Insufficient permissions" no Lambda
+3. **Ou usar outra porta:**
+   ```bash
+   PORT=3001 npm run dev
+   ```
+
+### Erro: "Type error" no TypeScript
 
 **Sintomas:**
-- Lambda não consegue acessar DynamoDB
-- Erro "AccessDeniedException"
+- Erro de tipo ao executar `npm run build`
+- Mensagens de erro do TypeScript
 
 **Soluções:**
 
-1. **Verificar IAM Role da Lambda:**
+1. **Verificar tipos:**
    ```bash
-   aws lambda get-function --function-name todo-list-backend-dev-getTodos --query 'Configuration.Role'
+   npm run type-check
    ```
 
-2. **Verificar políticas anexadas:**
-   - A role deve ter permissões para DynamoDB e API Gateway
-   - Verifique o `serverless.yml` seção `iam.role.statements`
+2. **Verificar se tipos estão corretos:**
+   - Confirme que os tipos em `lib/types.ts` estão corretos
+   - Verifique se as props dos componentes estão tipadas corretamente
 
-3. **Atualizar permissões:**
-   ```bash
-   cd backend
-   npx serverless deploy function -f getTodos --stage dev
-   ```
+3. **Verificar tsconfig.json:**
+   - Confirme que `tsconfig.json` está configurado corretamente
+   - Verifique se os paths estão corretos
 
-## 📝 Problemas na Todo List
+## 🎮 Problemas no Jogo
 
-### Todos não são carregados
+### Jogadas não são processadas
 
 **Sintomas:**
-- Lista de todos não aparece
-- Erro ao buscar todos
+- Clicar em células não faz nada
+- Estado não atualiza
 
 **Soluções:**
 
 1. **Verificar console do navegador:**
    - Abra DevTools (F12)
-   - Verifique erros no console
-   - Verifique requisições HTTP na aba Network
+   - Veja se há erros no console
+   - Verifique se há warnings
 
-2. **Verificar se a API está respondendo:**
-   - Teste a API diretamente com curl ou Postman
-   - Verifique se o endpoint está correto
+2. **Verificar se handleCellClick está sendo chamado:**
+   - Adicione `console.log` em `useGame.ts`:
+     ```typescript
+     const handleCellClick = useCallback((position: number) => {
+       console.log('Cell clicked:', position);
+       // ... resto do código
+     }, []);
+     ```
 
-3. **Verificar logs do Lambda:**
-   ```bash
-   aws logs tail /aws/lambda/todo-list-backend-dev-getTodos --follow
-   ```
+3. **Verificar se Board está recebendo props corretas:**
+   - Confirme que `onCellClick` está sendo passado para `Board`
+   - Verifique se `disabled` está correto
 
-4. **Verificar estado no DynamoDB:**
-   ```bash
-   aws dynamodb scan --table-name todo-list-backend-todos-dev
-   ```
-
-### Todos não são criados/atualizados/deletados
+### Vitória não é detectada
 
 **Sintomas:**
-- Ações de criar, atualizar ou deletar não funcionam
-- Erro 400 ou 500 na API
+- Jogador completa linha/coluna/diagonal mas não vence
+- Status continua como "playing"
 
 **Soluções:**
 
-1. **Verificar payload da requisição:**
-   - Verifique se o body está no formato correto
-   - Verifique se todos os campos obrigatórios estão presentes
+1. **Verificar lógica de vitória:**
+   - Teste `checkWinner` isoladamente:
+     ```typescript
+     import { checkWinner } from '@/lib/gameLogic';
+     
+     const board = ['X', 'X', 'X', null, null, null, null, null, null];
+     console.log(checkWinner(board)); // Deve retornar 'X'
+     ```
 
-2. **Verificar logs do Lambda:**
+2. **Verificar combinações vencedoras:**
+   - Confirme que `WINNING_COMBINATIONS` em `gameLogic.ts` está correto
+   - Teste cada combinação manualmente
+
+3. **Verificar se getGameStatus está sendo chamado:**
+   - Adicione logs em `getGameStatus`:
+     ```typescript
+     export function getGameStatus(board: Board) {
+       const winner = checkWinner(board);
+       console.log('Winner:', winner);
+       // ... resto do código
+     }
+     ```
+
+### Empate não é detectado
+
+**Sintomas:**
+- Todas células preenchidas mas jogo não termina
+- Status não muda para "finished"
+
+**Soluções:**
+
+1. **Verificar lógica de empate:**
+   - Teste `checkDraw` isoladamente:
+     ```typescript
+     import { checkDraw } from '@/lib/gameLogic';
+     
+     const board = ['X', 'O', 'X', 'O', 'X', 'O', 'O', 'X', 'O'];
+     console.log(checkDraw(board)); // Deve retornar true
+     ```
+
+2. **Verificar se board está completo:**
+   - Confirme que todas as 9 posições estão preenchidas
+   - Verifique se não há vencedor antes de verificar empate
+
+### Botão "Jogar Novamente" não funciona
+
+**Sintomas:**
+- Clicar no botão não reinicia o jogo
+- Estado não volta ao inicial
+
+**Soluções:**
+
+1. **Verificar se resetGame está sendo chamado:**
+   - Adicione log em `useGame.ts`:
+     ```typescript
+     const resetGame = useCallback(() => {
+       console.log('Resetting game');
+       setGameState(INITIAL_STATE);
+     }, []);
+     ```
+
+2. **Verificar se botão está conectado:**
+   - Confirme que `onClick={resetGame}` está no botão
+   - Verifique se o botão só aparece quando `status === 'finished'`
+
+## 🧪 Problemas com Testes
+
+### Erro: "Cannot find module" nos testes
+
+**Sintomas:**
+- Erro ao executar `npm test`
+- Mensagem sobre módulo não encontrado
+
+**Soluções:**
+
+1. **Verificar jest.config.js:**
+   - Confirme que `moduleNameMapper` está configurado:
+     ```javascript
+     moduleNameMapper: {
+       '^@/(.*)$': '<rootDir>/$1',
+     }
+     ```
+
+2. **Verificar se jest.setup.js existe:**
+   - Confirme que o arquivo existe na raiz
+   - Verifique se está sendo carregado em `setupFilesAfterEnv`
+
+### Cobertura abaixo de 80%
+
+**Sintomas:**
+- Testes falham com mensagem de cobertura insuficiente
+- Cobertura abaixo de 80%
+
+**Soluções:**
+
+1. **Verificar quais arquivos não estão cobertos:**
    ```bash
-   aws logs tail /aws/lambda/todo-list-backend-dev-createTodo --follow
-   aws logs tail /aws/lambda/todo-list-backend-dev-updateTodo --follow
-   aws logs tail /aws/lambda/todo-list-backend-dev-deleteTodo --follow
+   npm run test:coverage
+   ```
+   - Veja o relatório de cobertura
+   - Identifique arquivos com baixa cobertura
+
+2. **Adicionar testes:**
+   - Crie testes para funções não cobertas
+   - Teste casos de borda (edge cases)
+   - Teste diferentes cenários
+
+3. **Verificar collectCoverageFrom:**
+   - Confirme que os arquivos corretos estão sendo incluídos
+   - Verifique se arquivos de teste não estão sendo incluídos
+
+### Testes falham mas código funciona
+
+**Sintomas:**
+- Aplicação funciona no navegador
+- Testes falham
+
+**Soluções:**
+
+1. **Verificar ambiente de teste:**
+   - Confirme que `jest-environment-jsdom` está configurado
+   - Verifique se `@testing-library/jest-dom` está importado
+
+2. **Verificar mocks:**
+   - Confirme que mocks estão configurados corretamente
+   - Verifique se dependências estão mockadas
+
+3. **Verificar async/await:**
+   - Confirme que testes assíncronos estão usando `async/await`
+   - Verifique se `waitFor` está sendo usado quando necessário
+
+## 🎨 Problemas de Estilização
+
+### Estilos do Tailwind não aparecem
+
+**Sintomas:**
+- Classes do Tailwind não aplicam estilos
+- Componentes sem estilo
+
+**Soluções:**
+
+1. **Verificar tailwind.config.ts:**
+   - Confirme que `content` inclui os arquivos corretos:
+     ```typescript
+     content: [
+       './app/**/*.{js,ts,jsx,tsx,mdx}',
+       './components/**/*.{js,ts,jsx,tsx,mdx}',
+     ]
+     ```
+
+2. **Verificar postcss.config.js:**
+   - Confirme que Tailwind está configurado:
+     ```javascript
+     plugins: {
+       tailwindcss: {},
+       autoprefixer: {},
+     }
+     ```
+
+3. **Verificar globals.css:**
+   - Confirme que as diretivas do Tailwind estão presentes:
+     ```css
+     @tailwind base;
+     @tailwind components;
+     @tailwind utilities;
+     ```
+
+4. **Reiniciar servidor de desenvolvimento:**
+   ```bash
+   # Pare o servidor (Ctrl+C)
+   npm run dev
    ```
 
-3. **Verificar permissões do DynamoDB:**
-   - Certifique-se de que a Lambda tem permissões para PutItem, UpdateItem, DeleteItem
+## 🔧 Problemas Gerais
 
-## 🔍 Problemas de Debug
+### Erro: "Hooks can only be called inside of the body of a function component"
 
-### Como ver logs em tempo real
+**Sintomas:**
+- Erro ao usar hooks do React
+- Mensagem sobre hooks
 
-```bash
-# Logs de todas as funções
-aws logs tail /aws/lambda/todo-list-backend-dev-getTodos --follow
-aws logs tail /aws/lambda/todo-list-backend-dev-createTodo --follow
-aws logs tail /aws/lambda/todo-list-backend-dev-updateTodo --follow
-aws logs tail /aws/lambda/todo-list-backend-dev-deleteTodo --follow
+**Soluções:**
 
-# Ou usando serverless
-cd backend
-npx serverless logs -f getTodos --tail --stage dev
-npx serverless logs -f createTodo --tail --stage dev
-```
+1. **Verificar se componente é 'use client':**
+   - Componentes que usam hooks devem ter `'use client'` no topo
+   - Confirme que `useGame` está em um componente client
 
-### Como inspecionar estado do DynamoDB
+2. **Verificar se hook está sendo chamado no nível superior:**
+   - Hooks não podem estar dentro de loops, condições ou funções aninhadas
+   - Mova o hook para o nível superior do componente
 
-```bash
-# Listar todos os todos
-aws dynamodb scan --table-name todo-list-backend-todos-dev
+### Erro: "Maximum update depth exceeded"
 
-# Buscar todo específico
-aws dynamodb get-item \
-  --table-name todo-list-backend-todos-dev \
-  --key '{"id": {"S": "todo-1234567890-abc123"}}'
-```
+**Sintomas:**
+- Aplicação trava ou fica lenta
+- Muitos re-renders
 
-### Como testar API REST manualmente
+**Soluções:**
 
-```bash
-# Obter URL da API
-API_URL=$(aws apigateway get-rest-apis --query 'items[?contains(name, `todo-list`)].id' --output text)
-API_URL="https://${API_URL}.execute-api.us-east-1.amazonaws.com/dev"
+1. **Verificar dependências de useCallback/useMemo:**
+   - Confirme que arrays de dependências estão corretos
+   - Evite criar novas funções/objetos nas dependências
 
-# Listar todos
-curl -X GET "${API_URL}/todos"
+2. **Verificar se setState está causando loop:**
+   - Não chame setState dentro de render
+   - Use useEffect quando necessário
 
-# Criar todo
-curl -X POST "${API_URL}/todos" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Test todo", "completed": false}'
-```
+## 📚 Recursos Adicionais
 
-## 🐛 Problemas Comuns de Código
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs)
+- [Jest Documentation](https://jestjs.io/docs/getting-started)
+- [Testing Library Documentation](https://testing-library.com/docs)
 
-### Erro: "Cannot read property of undefined"
+## 💡 Dicas
 
-**Causa comum:** Acesso a propriedades antes de verificar se existem
-
-**Solução:**
-```javascript
-// ❌ Ruim
-const player = game.Item.player1;
-
-// ✅ Bom
-const player = game.Item?.player1;
-if (!player) {
-  return { statusCode: 404 };
-}
-```
-
-### Erro: "fetch is not defined" no servidor
-
-**Causa:** Tentando usar fetch sem configuração adequada no servidor Next.js
-
-**Solução:** Use apenas no cliente (componentes com `'use client'`) ou configure fetch adequadamente no servidor
-
-### Erro: "Module not found"
-
-**Causa:** Dependências não instaladas ou caminhos incorretos
-
-**Solução:**
-```bash
-# Reinstalar dependências
-rm -rf node_modules package-lock.json
-npm install
-```
-
-## 📊 Monitoramento e Métricas
-
-### Verificar métricas do API Gateway
-
-```bash
-API_ID=$(aws apigateway get-rest-apis --query 'items[?contains(name, `todo-list`)].id' --output text)
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/ApiGateway \
-  --metric-name Count \
-  --dimensions Name=ApiName,Value=todo-list-backend-dev \
-  --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
-  --period 300 \
-  --statistics Sum
-```
-
-### Verificar custos
-
-- Acesse AWS Cost Explorer
-- Filtre por serviço: Lambda, API Gateway, DynamoDB
-- Verifique uso de recursos
-
-## 🆘 Ainda com Problemas?
-
-1. **Verifique a documentação:**
-   - [SETUP.md](SETUP.md)
-   - [ARCHITECTURE.md](ARCHITECTURE.md)
-   - [DEPLOYMENT.md](DEPLOYMENT.md)
-
-2. **Consulte logs:**
-   - CloudWatch Logs
-   - Console do navegador
-   - GitHub Actions logs
-
-3. **Verifique recursos AWS:**
-   - Certifique-se de que todos os recursos foram criados
-   - Verifique permissões IAM
-   - Verifique limites de conta AWS
-
-4. **Recrie do zero:**
-   - Siga o guia [WORKSHOP.md](WORKSHOP.md) novamente
-   - Remova todos os recursos antes de recriar
+- Sempre verifique o console do navegador primeiro
+- Use `console.log` para debugar
+- Teste funções isoladamente
+- Verifique tipos com `npm run type-check`
+- Execute testes antes de fazer commit

@@ -23,30 +23,12 @@ Este documento descreve todos os pré-requisitos e configurações necessárias 
    git --version
    ```
 
-4. **Serverless Framework**
-   ```bash
-   npm install -g serverless@3
-   serverless --version
-   ```
-   Use a major 3 para manter compatibilidade com o `frameworkVersion` do backend.
+### Editor de Código (Recomendado)
 
-5. **Husky** (para validação de qualidade de código via Git hooks)
-   - Será instalado automaticamente via npm ao instalar dependências do projeto
-   - Documentação: https://typicode.github.io/husky/
-
-6. **Conta AWS** com permissões para:
-   - Lambda
-   - API Gateway
-   - DynamoDB
-   - IAM
-   - CloudFormation
-   - CloudWatch Logs
-
-### Conta GitHub
-
-- Conta GitHub ativa
-- Acesso ao repositório do projeto
-- Permissões para configurar GitHub Actions e OIDC
+- **VS Code** com extensões:
+  - ESLint
+  - Prettier
+  - TypeScript
 
 ## 🔧 Configuração Inicial
 
@@ -58,100 +40,42 @@ cd pilulas-ia-pipeline
 git checkout main
 ```
 
-**Importante:** neste fluxo, faça push sempre direto para `main` (`git push origin main`), sem criar branch adicional.
-
-### 2. Instalar Dependências do Backend
-
-**Nota:** Não é necessário configurar AWS CLI localmente. O deploy será feito via GitHub Actions usando OIDC (sem necessidade de credenciais locais).
+### 2. Instalar Dependências
 
 ```bash
-cd backend
 npm install
 ```
 
-### 3. Instalar Dependências do Frontend
+### 3. Executar o Projeto Localmente
 
 ```bash
-cd ../frontend
-npm install
+npm run dev
 ```
 
-### 4. Configurar Husky
-
-O projeto utiliza Husky para validar qualidade de código antes de cada push. As validações incluem:
-- **Lint** (ESLint) - validação de código
-- **TypeScript** (tsc) - verificação de tipos
-- **Cobertura de testes** - mínimo de 80%
-
-```bash
-# Na raiz do projeto
-cd /home/usuario/Documentos/git/youtube-channel-projects/pilulas-ia-pipeline
-
-# Instalar dependências (Husky será instalado automaticamente)
-npm install
-
-# Inicializar Husky (se ainda não estiver inicializado)
-npx husky install
-
-# Testar hooks manualmente
-npm run lint
-npm run type-check
-npm test -- --coverage
-```
-
-**Importante:** O Husky valida lint, TypeScript e cobertura de testes (80% mínimo) antes de permitir push. Se alguma validação falhar, o push será bloqueado.
-
-## 🔐 Configuração de Credenciais
-
-### Variáveis de Ambiente - Backend
-
-Crie um arquivo `.env` na pasta `backend/`:
-
-```bash
-cd backend
-cat > .env << EOF
-AWS_REGION=us-east-1
-STAGE=dev
-EOF
-```
-
-### Variáveis de Ambiente - Frontend
-
-Crie um arquivo `.env.local` na pasta `frontend/`:
-
-```bash
-cd frontend
-cat > .env.local << EOF
-NEXT_PUBLIC_API_URL=
-EOF
-```
-
-**Nota:** O `NEXT_PUBLIC_API_URL` será preenchido após o primeiro deployment do backend.
+O projeto estará disponível em `http://localhost:3000`
 
 ## 🏗️ Estrutura de Diretórios
 
 Após a configuração inicial, a estrutura deve ser:
 
 ```
-pilulas-ia-pipeline/
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   ├── .env.local
-│   └── next.config.js
-├── backend/
-│   ├── functions/
-│   ├── lib/
-│   ├── package.json
-│   ├── serverless.yml
-│   └── .env
-├── infrastructure/
-│   └── iam-role.yaml
-├── .github/
-│   └── workflows/
-│       └── deploy.yml
-└── docs/
+jogo-da-velha-local/
+├── app/
+│   ├── page.tsx      # Página principal
+│   ├── layout.tsx    # Layout raiz
+│   └── globals.css   # Estilos globais
+├── components/
+│   ├── Board.tsx     # Componente do tabuleiro
+│   └── GameStatus.tsx # Componente de status
+├── lib/
+│   ├── types.ts       # Tipos TypeScript
+│   ├── gameLogic.ts   # Lógica do jogo
+│   └── useGame.ts     # Hook React
+├── package.json
+├── tsconfig.json
+├── next.config.js
+├── tailwind.config.ts
+└── postcss.config.js
 ```
 
 ## ✅ Verificação do Setup
@@ -162,103 +86,66 @@ Execute os seguintes comandos para verificar se tudo está configurado corretame
 # Verificar Node.js
 node --version
 
-# Verificar Serverless Framework
-serverless --version
-# Deve exibir versão 3.x
+# Verificar npm
+npm --version
 
-# Verificar Husky
-npx husky --version
+# Verificar dependências instaladas
+npm list --depth=0
 
-# Verificar dependências do backend
-cd backend && npm list --depth=0
+# Testar build
+npm run build
 
-# Verificar dependências do frontend
-cd ../frontend && npm list --depth=0
-
-# Testar validações (lint, tsc, testes)
-cd .. && npm run lint
-npm run type-check
-npm test -- --coverage
+# Executar testes
+npm test
 ```
 
-## 🧪 Validações Automáticas (Husky)
+## 🧪 Testes e Cobertura
 
-O projeto utiliza Husky para validar automaticamente antes de cada push:
+O projeto utiliza Jest para testes com cobertura mínima de 80%.
 
-1. **Lint (ESLint)** - Validação de código
-2. **TypeScript (tsc)** - Verificação de tipos
-3. **Cobertura de Testes** - Mínimo de 80%
-
-Todas as validações são executadas no hook `pre-push` do Git.
-
-### Executar Testes e Verificar Cobertura
+### Executar Testes
 
 ```bash
-# Backend
-cd backend
-npm test -- --coverage
+# Executar todos os testes
+npm test
 
-# Frontend
-cd ../frontend
-npm test -- --coverage
+# Executar testes em modo watch
+npm run test:watch
+
+# Executar testes com cobertura
+npm run test:coverage
 ```
 
-### Se Alguma Validação Falhar
+### Cobertura Mínima
 
-O Husky bloqueará o push. Para resolver:
+O projeto exige cobertura mínima de 80% em:
+- Branches (ramificações)
+- Functions (funções)
+- Lines (linhas)
+- Statements (declarações)
 
-1. **Erros de Lint:**
-   ```bash
-   npm run lint
-   # Corrija os erros indicados
-   npm run lint -- --fix  # Auto-corrigir quando possível
-   ```
-
-2. **Erros de TypeScript:**
-   ```bash
-   npm run type-check
-   # Corrija os erros de tipo indicados
-   ```
-
-3. **Cobertura Abaixo de 80%:**
-   ```bash
-   npm test -- --coverage
-   # Verifique quais arquivos não estão cobertos
-   # Adicione testes para aumentar a cobertura
-   ```
-
-4. Tente fazer push novamente:
-   ```bash
-   git push origin main
-   ```
-
-### Pular Validação (Não Recomendado)
-
-Se precisar fazer push sem passar pela validação (não recomendado):
-
-```bash
-git push origin main --no-verify
-```
-
-⚠️ **Atenção:** Use apenas em casos excepcionais. As validações são requisitos do projeto.
+Se a cobertura estiver abaixo de 80%, os testes falharão.
 
 ## 🚀 Próximos Passos
 
 Após completar o setup:
 
-1. Configure o OIDC no GitHub (veja [DEPLOYMENT.md](DEPLOYMENT.md))
-2. Crie a IAM Role para GitHub Actions (veja [DEPLOYMENT.md](DEPLOYMENT.md))
-3. Execute o primeiro deployment (veja [DEPLOYMENT.md](DEPLOYMENT.md))
+1. Leia o [WORKSHOP.md](WORKSHOP.md) para entender como o projeto foi construído
+2. Explore o código em `app/`, `components/`, e `lib/`
+3. Execute `npm run dev` para ver o jogo em ação
+4. Execute `npm test` para ver os testes
 
 ## 📚 Referências
 
-- [Serverless Framework Documentation](https://www.serverless.com/framework/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [GitHub Actions OIDC](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
-- [Husky Documentation](https://typicode.github.io/husky/)
+- [React Documentation](https://react.dev)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Jest Documentation](https://jestjs.io/docs/getting-started)
 
-## 💡 Nota sobre AWS CLI
+## 💡 Dicas
 
-**Não é necessário configurar AWS CLI localmente.** O projeto utiliza GitHub Actions com OIDC para fazer deploy na AWS sem necessidade de credenciais locais. 
-
-Se você precisar fazer deploy manual (opcional), pode instalar e configurar AWS CLI, mas isso não é obrigatório para o workflow padrão do projeto.
+- Use `npm run dev` para desenvolvimento com hot-reload
+- Use `npm run build` para verificar se o build funciona
+- Use `npm run lint` para verificar problemas de código
+- Use `npm test` antes de fazer commit

@@ -1,26 +1,26 @@
-# Prompt para IA - Recriar Projeto Todo List Online
+# Prompt para IA - Recriar Projeto Jogo da Velha Local
 
 Use este prompt para pedir a uma IA que recrie o projeto completo seguindo a documentação.
 
 ## Prompt Completo
 
 ```
-Crie um novo repositório Git para o projeto "Todo List Online" seguindo EXATAMENTE o guia completo em docs/WORKSHOP.md.
+Crie um novo repositório Git para o projeto "Jogo da Velha Local" seguindo EXATAMENTE o guia completo em docs/WORKSHOP.md.
 
 Requisitos:
 1. Siga TODOS os passos do WORKSHOP.md na ordem
 2. Use TODOS os códigos fornecidos no documento
 3. Crie TODOS os arquivos mencionados
 4. Configure TODAS as dependências e ferramentas
-5. Implemente o backend completo (Lambda functions, serverless.yml)
-6. Implemente o frontend completo (Next.js, componentes, hooks)
-7. Configure Husky com validações (lint, tsc, testes 80%)
-8. Configure GitHub Actions workflow
+5. Implemente a lógica do jogo completa (gameLogic.ts)
+6. Implemente o hook useGame
+7. Implemente o frontend completo (Next.js, componentes Board e GameStatus)
+8. Configure Jest para testes com cobertura mínima de 80%
 9. Crie a estrutura de diretórios conforme especificado
-10. Adicione todos os arquivos de configuração (package.json, tsconfig.json, .eslintrc.json, jest.config.js, etc.)
+10. Adicione todos os arquivos de configuração (package.json, tsconfig.json, jest.config.js, tailwind.config.ts, etc.)
 11. Trabalhe e faça push diretamente na branch main do novo repositório (não crie outras branches para esse fluxo)
 
-O projeto deve estar 100% funcional e pronto para deploy seguindo as instruções do DEPLOYMENT.md.
+O projeto deve estar 100% funcional e rodar localmente sem necessidade de backend.
 
 Após criar tudo, faça commit inicial e push diretamente para origin/main.
 ```
@@ -29,24 +29,26 @@ Após criar tudo, faça commit inicial e push diretamente para origin/main.
 
 ```
 Siga o guia completo em docs/WORKSHOP.md para criar um novo repositório com o projeto 
-Todo List Online. Use todos os códigos, configurações e instruções fornecidos no 
-documento. O projeto deve incluir backend (AWS Lambda + REST API), frontend (Next.js), 
-Husky para validações, e GitHub Actions para CI/CD. Faça push diretamente na main (sem criar outra branch).
+Jogo da Velha Local. Use todos os códigos, configurações e instruções fornecidos no 
+documento. O projeto deve incluir apenas frontend (Next.js) com lógica do jogo local, 
+sem necessidade de backend. Faça push diretamente na main (sem criar outra branch).
 ```
 
 ## Checklist para IA
 
 - [ ] Criar estrutura de diretórios
 - [ ] Configurar .gitignore
-- [ ] Criar package.json (raiz, backend, frontend)
+- [ ] Criar package.json com todas as dependências
 - [ ] Configurar TypeScript (tsconfig.json)
-- [ ] Configurar ESLint (.eslintrc.json)
-- [ ] Configurar Jest (jest.config.js para backend e frontend)
-- [ ] Criar serverless.yml completo
-- [ ] Implementar todas as Lambda functions (CRUD de todos)
-- [ ] Criar frontend Next.js completo
-- [ ] Configurar Husky e hooks
-- [ ] Criar workflow GitHub Actions
+- [ ] Configurar Tailwind CSS (tailwind.config.ts, postcss.config.js)
+- [ ] Configurar Next.js (next.config.js)
+- [ ] Configurar Jest (jest.config.js, jest.setup.js)
+- [ ] Criar tipos TypeScript (lib/types.ts)
+- [ ] Implementar lógica do jogo (lib/gameLogic.ts)
+- [ ] Criar hook useGame (lib/useGame.ts)
+- [ ] Criar componente Board (components/Board.tsx)
+- [ ] Criar componente GameStatus (components/GameStatus.tsx)
+- [ ] Criar página principal (app/page.tsx, app/layout.tsx, app/globals.css)
 - [ ] Adicionar documentação básica
 - [ ] Fazer commit inicial e push direto na main
 
