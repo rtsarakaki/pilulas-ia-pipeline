@@ -1,16 +1,16 @@
-# Jogo da Velha Online 🎮
+# Todo List Online 📝
 
-Jogo da velha multiplayer em tempo real construído com Next.js no frontend e AWS Lambda com WebSocket API Gateway no backend.
+Aplicação Todo List construída com Next.js no frontend e AWS Lambda com REST API Gateway no backend.
 
 ## 🏗️ Arquitetura
 
 - **Frontend:** Next.js 14+ com App Router
-- **Backend:** AWS Lambda com WebSocket API Gateway
+- **Backend:** AWS Lambda com REST API Gateway
 - **Infraestrutura:** Serverless Framework
-- **Banco de Dados:** DynamoDB para estado do jogo
+- **Banco de Dados:** DynamoDB para armazenar todos
 - **CI/CD Backend:** GitHub Actions com OIDC authentication
 - **CI/CD Frontend:** Vercel (integração via painel)
-- **Comunicação:** WebSocket para tempo real
+- **Comunicação:** REST API (HTTP/HTTPS)
 
 ## 📚 Documentação
 
@@ -67,7 +67,7 @@ pilulas-ia-pipeline/
 - TypeScript 5+
 - Serverless Framework 3.x
 - AWS Lambda (Node.js 18+)
-- AWS API Gateway (WebSocket)
+- AWS API Gateway (REST API)
 - Amazon DynamoDB
 - GitHub Actions
 

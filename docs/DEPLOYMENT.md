@@ -230,9 +230,9 @@ npm install
 npx serverless deploy --stage dev
 ```
 
-**Anote a URL do WebSocket retornada.** Ela será algo como:
+**Anote a URL da API REST retornada.** Ela será algo como:
 ```
-wss://abc123.execute-api.us-east-1.amazonaws.com/dev
+https://abc123.execute-api.us-east-1.amazonaws.com/dev
 ```
 
 **Recomendação:** Use o deploy via GitHub Actions (Passo 6) que não requer credenciais locais.
@@ -243,7 +243,7 @@ Atualize `frontend/.env.local`:
 
 ```bash
 cd ../frontend
-echo "NEXT_PUBLIC_WS_URL=wss://abc123.execute-api.us-east-1.amazonaws.com/dev" > .env.local
+echo "NEXT_PUBLIC_API_URL=https://abc123.execute-api.us-east-1.amazonaws.com/dev" > .env.local
 ```
 
 ### 5.3 Testar Localmente
@@ -252,7 +252,7 @@ echo "NEXT_PUBLIC_WS_URL=wss://abc123.execute-api.us-east-1.amazonaws.com/dev" >
 npm run dev
 ```
 
-Acesse `http://localhost:3000` e teste a conexão WebSocket.
+Acesse `http://localhost:3000` e teste criar, atualizar e deletar todos.
 
 ### 5.4 Integrar Frontend com Vercel
 
@@ -274,8 +274,8 @@ O frontend será deployado automaticamente via integração do repositório GitH
 3. **Configurar Variáveis de Ambiente:**
    - Na página do projeto, vá em **Settings → Environment Variables**
    - Adicione:
-     - **Name:** `NEXT_PUBLIC_WS_URL`
-     - **Value:** A URL do WebSocket retornada no deploy do backend (ex: `wss://abc123.execute-api.us-east-1.amazonaws.com/dev`)
+     - **Name:** `NEXT_PUBLIC_API_URL`
+     - **Value:** A URL da API REST retornada no deploy do backend (ex: `https://abc123.execute-api.us-east-1.amazonaws.com/dev`)
      - **Environment:** Production, Preview, Development (marque todos)
 
 4. **Deploy:**
@@ -310,15 +310,15 @@ Acompanhe os logs do workflow. O deployment deve:
 1. ✅ Configurar OIDC
 2. ✅ Assumir role AWS
 3. ✅ Deploy do backend
-4. ✅ Obter URL do WebSocket
+4. ✅ Obter URL da API REST
 
-### 6.4 Obter URL do WebSocket e Configurar Vercel
+### 6.4 Obter URL da API REST e Configurar Vercel
 
-Após o deploy do backend, o workflow deve outputar a URL do WebSocket. Use-a para configurar a variável de ambiente no Vercel:
+Após o deploy do backend, o workflow deve outputar a URL da API REST. Use-a para configurar a variável de ambiente no Vercel:
 
-1. Copie a URL do WebSocket retornada
+1. Copie a URL da API REST retornada
 2. Acesse o painel da Vercel → Seu projeto → Settings → Environment Variables
-3. Adicione ou atualize `NEXT_PUBLIC_WS_URL` com a URL do WebSocket
+3. Adicione ou atualize `NEXT_PUBLIC_API_URL` com a URL da API REST
 4. O Vercel fará um novo deploy automaticamente
 
 ## ✅ Passo 7: Verificação Pós-Deployment
@@ -329,45 +329,46 @@ Você pode verificar os recursos criados no Console AWS:
 
 1. **Lambda Functions:**
    - Console AWS → Lambda → Functions
-   - Procure por funções com nome contendo `tic-tac-toe-backend-dev`
+   - Procure por funções com nome contendo `todo-list-backend-dev`
 
 2. **API Gateway:**
    - Console AWS → API Gateway → APIs
-   - Procure por APIs WebSocket com nome contendo `tic-tac-toe`
+   - Procure por APIs REST com nome contendo `todo-list`
 
 3. **DynamoDB Tables:**
    - Console AWS → DynamoDB → Tables
-   - Procure por tabelas com nome contendo `tic-tac-toe-backend`
+   - Procure por tabelas com nome contendo `todo-list-backend`
 
 **Nota:** Se você tiver AWS CLI configurado (opcional), pode usar os comandos:
 ```bash
-aws lambda list-functions --query 'Functions[?contains(FunctionName, `tic-tac-toe`)].FunctionName'
-aws apigatewayv2 get-apis --query 'Items[?contains(Name, `tic-tac-toe`)].Name'
-aws dynamodb list-tables --query 'TableNames[?contains(@, `tic-tac-toe`)]'
+aws lambda list-functions --query 'Functions[?contains(FunctionName, `todo-list`)].FunctionName'
+aws apigateway get-rest-apis --query 'items[?contains(name, `todo-list`)].name'
+aws dynamodb list-tables --query 'TableNames[?contains(@, `todo-list`)]'
 ```
 
-### 7.2 Testar WebSocket
+### 7.2 Testar API REST
 
-Use uma ferramenta como `wscat` (instale via npm):
+Use `curl` ou qualquer cliente HTTP:
 
 ```bash
-npm install -g wscat
-wscat -c wss://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/dev
-```
+# Listar todos
+curl https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/dev/todos
 
-Envie uma mensagem de teste:
-```json
-{"action": "connect"}
+# Criar todo
+curl -X POST https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/dev/todos \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Test todo"}'
 ```
 
 **Alternativa:** Você pode testar diretamente no frontend após configurar a variável de ambiente no Vercel.
 
 ### 7.3 Testar Aplicação
 
-1. Abra a aplicação em dois navegadores diferentes
-2. Verifique se ambos conectam
-3. Faça uma jogada em um navegador
-4. Verifique se o outro navegador atualiza
+1. Abra a aplicação no navegador
+2. Crie um novo todo
+3. Marque como completo
+4. Delete um todo
+5. Verifique se as operações funcionam corretamente
 
 ## 🔄 Passo 8: Atualizações Futuras
 
@@ -435,11 +436,12 @@ aws iam delete-open-id-connect-provider \
 - Verifique se a policy está anexada à role
 - Verifique se as permissões na policy são suficientes
 
-### Erro: "WebSocket connection failed"
+### Erro: "Failed to fetch todos" ou "API connection failed"
 
 - Verifique se o API Gateway foi criado
 - Verifique se a URL está correta
 - Verifique os logs do CloudWatch
+- Verifique se CORS está configurado corretamente
 
 ### Erro no Deploy do Serverless
 
@@ -451,4 +453,4 @@ aws iam delete-open-id-connect-provider \
 
 - [GitHub Actions OIDC](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
 - [Serverless Framework AWS](https://www.serverless.com/framework/docs/providers/aws)
-- [AWS API Gateway WebSocket](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html)
+- [AWS API Gateway REST API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html)

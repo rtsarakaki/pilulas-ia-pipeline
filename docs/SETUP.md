@@ -122,11 +122,11 @@ Crie um arquivo `.env.local` na pasta `frontend/`:
 ```bash
 cd frontend
 cat > .env.local << EOF
-NEXT_PUBLIC_WS_URL=
+NEXT_PUBLIC_API_URL=
 EOF
 ```
 
-**Nota:** O `NEXT_PUBLIC_WS_URL` será preenchido após o primeiro deployment do backend.
+**Nota:** O `NEXT_PUBLIC_API_URL` será preenchido após o primeiro deployment do backend.
 
 ## 🏗️ Estrutura de Diretórios
 
