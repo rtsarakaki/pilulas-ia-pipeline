@@ -1,12 +1,12 @@
 # Guia Completo do Workshop
 
-Este documento é um guia passo a passo para recriar o projeto **Jogo da Velha Online** do zero. Use este guia durante o workshop para construir todo o projeto.
+Este documento é um guia passo a passo para recriar o projeto **Todo List Online** do zero. Use este guia durante o workshop para construir todo o projeto.
 
 ## 🎯 Objetivo do Workshop
 
-Construir um jogo da velha multiplayer em tempo real usando:
+Construir uma aplicação Todo List usando:
 - **Frontend:** Next.js
-- **Backend:** AWS Lambda com WebSocket API Gateway
+- **Backend:** AWS Lambda com REST API Gateway
 - **Infraestrutura:** Serverless Framework
 - **CI/CD:** GitHub Actions com OIDC
 
@@ -36,15 +36,15 @@ Antes de começar, verifique:
 
 ```bash
 # Criar pasta do projeto
-mkdir jogo-da-velha-online
-cd jogo-da-velha-online
+mkdir todo-list-online
+cd todo-list-online
 
 # Inicializar Git
 git init
 git branch -M main
 
 # Criar README inicial
-echo "# Jogo da Velha Online" > README.md
+echo "# Todo List Online" > README.md
 git add README.md
 git commit -m "Initial commit"
 ```
@@ -116,7 +116,7 @@ Crie `package.json` na raiz do projeto:
 
 ```json
 {
-  "name": "jogo-da-velha-online",
+  "name": "todo-list-online",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -212,9 +212,9 @@ Atualize `backend/package.json`:
 
 ```json
 {
-  "name": "tic-tac-toe-backend",
+  "name": "todo-list-backend",
   "version": "1.0.0",
-  "description": "Backend serverless para Jogo da Velha Online",
+  "description": "Backend serverless para Todo List Online",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -277,19 +277,20 @@ module.exports = {
 Crie `backend/serverless.yml`:
 
 ```yaml
-service: tic-tac-toe-backend
+service: todo-list-backend
 
-frameworkVersion: '^3.0.0'
+frameworkVersion: '>=3.38.0'
 
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  httpApi:
+    cors: true
   environment:
     STAGE: ${self:provider.stage}
-    GAMES_TABLE: ${self:service}-games-${self:provider.stage}
-    CONNECTIONS_TABLE: ${self:service}-connections-${self:provider.stage}
+    TODOS_TABLE: ${self:service}-todos-${self:provider.stage}
   iam:
     role:
       statements:
@@ -299,69 +300,61 @@ provider:
             - dynamodb:GetItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-            - dynamodb:Query
             - dynamodb:Scan
           Resource:
-            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.GAMES_TABLE}"
-            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CONNECTIONS_TABLE}"
-        - Effect: Allow
-          Action:
-            - execute-api:ManageConnections
-          Resource:
-            - "arn:aws:execute-api:${self:provider.region}:*:*/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}"
 
 functions:
-  connect:
-    handler: functions/connect.handler
+  createTodo:
+    handler: functions/createTodo.handler
     events:
-      - websocket:
-          route: $connect
-  disconnect:
-    handler: functions/disconnect.handler
+      - httpApi:
+          path: /todos
+          method: post
+  getTodos:
+    handler: functions/getTodos.handler
     events:
-      - websocket:
-          route: $disconnect
-  game:
-    handler: functions/game.handler
+      - httpApi:
+          path: /todos
+          method: get
+  updateTodo:
+    handler: functions/updateTodo.handler
     events:
-      - websocket:
-          route: game
-  default:
-    handler: functions/default.handler
+      - httpApi:
+          path: /todos/{id}
+          method: put
+  deleteTodo:
+    handler: functions/deleteTodo.handler
     events:
-      - websocket:
-          route: $default
+      - httpApi:
+          path: /todos/{id}
+          method: delete
 
 resources:
   Resources:
-    GamesTable:
+    TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.GAMES_TABLE}
+        TableName: ${self:provider.environment.TODOS_TABLE}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: gameId
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: gameId
-            KeyType: HASH
-
-    ConnectionsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:provider.environment.CONNECTIONS_TABLE}
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: connectionId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: connectionId
+          - AttributeName: id
             KeyType: HASH
 ```
 
-### 2.3 Criar Função Lambda - connect.js
+### 2.3 Instalar Dependências do Backend
 
-Crie `backend/functions/connect.js`:
+```bash
+cd backend
+npm install uuid
+```
+
+### 2.4 Criar Função Lambda - createTodo.js
+
+Crie `backend/functions/createTodo.js`:
 
 ```javascript
 const AWS = require('aws-sdk');
@@ -741,7 +734,7 @@ cd backend
 npx serverless deploy --stage dev
 ```
 
-**Anote a URL do WebSocket retornada!**
+**Anote a URL da API REST retornada!**
 
 ## 🎨 Fase 3: Frontend - Next.js (30 min)
 
@@ -849,7 +842,7 @@ import '@testing-library/jest-dom';
 Crie `frontend/.env.local`:
 
 ```bash
-NEXT_PUBLIC_WS_URL=wss://SEU_API_ID.execute-api.us-east-1.amazonaws.com/dev
+NEXT_PUBLIC_API_URL=https://SEU_API_ID.execute-api.us-east-1.amazonaws.com/dev
 ```
 
 **Substitua `SEU_API_ID` pela URL retornada no deploy.**
@@ -1171,16 +1164,16 @@ jobs:
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
       
-      - name: Get WebSocket URL
-        id: websocket
+      - name: Get API URL
+        id: api
         working-directory: ./backend
         run: |
-          URL=$(npx serverless info --stage dev | grep -oP 'wss://[^ ]+' | head -1)
+          URL=$(npx serverless info --stage dev | grep -oP 'https://[^ ]+' | head -1)
           echo "url=$URL" >> $GITHUB_OUTPUT
       
-      - name: Output WebSocket URL
+      - name: Output API URL
         run: |
-          echo "WebSocket URL: ${{ steps.websocket.outputs.url }}"
+          echo "API URL: ${{ steps.api.outputs.url }}"
 ```
 
 **Nota:** O frontend será deployado automaticamente via integração do repositório GitHub com Vercel (veja seção 4.4 abaixo).
@@ -1214,8 +1207,8 @@ O frontend será deployado via integração do repositório GitHub com Vercel:
 3. **Configurar Variáveis de Ambiente:**
    - Na página do projeto, vá em **Settings → Environment Variables**
    - Adicione:
-     - **Name:** `NEXT_PUBLIC_WS_URL`
-     - **Value:** A URL do WebSocket retornada no deploy do backend
+     - **Name:** `NEXT_PUBLIC_API_URL`
+     - **Value:** A URL da API REST retornada no deploy do backend
      - **Environment:** Production, Preview, Development (marque todos)
 
 4. **Deploy:**
@@ -1256,11 +1249,11 @@ npm test -- --coverage
 
 ### 5.2 Testar Localmente
 
-1. Abra dois navegadores
-2. Acesse `http://localhost:3000` em ambos
-3. Verifique conexão
-4. Faça jogadas alternadas
-5. Teste vitória e empate
+1. Acesse `http://localhost:3000`
+2. Adicione alguns todos
+3. Marque alguns como completos
+4. Delete alguns todos
+5. Verifique se as mudanças persistem após recarregar
 
 ### 5.3 Testar Deployment
 
@@ -1287,8 +1280,8 @@ Se houver erros, corrija antes de fazer push. O Husky bloqueará push se alguma 
 
 ## 🎉 Conclusão
 
-Parabéns! Você construiu um jogo da velha online completo com:
-- ✅ Backend serverless com WebSocket
+Parabéns! Você construiu uma Todo List online completa com:
+- ✅ Backend serverless com REST API
 - ✅ Frontend Next.js
 - ✅ CI/CD automatizado
 - ✅ Infraestrutura como código

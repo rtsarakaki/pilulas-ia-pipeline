@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'IAM Role for GitHub Actions OIDC - Jogo da Velha Online'
+Description: 'IAM Role for GitHub Actions OIDC - Todo List Online'
 
 Parameters:
   GitHubOwner:
@@ -27,7 +27,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: github-actions-deploy-role
-      Description: 'Role for GitHub Actions to deploy Jogo da Velha Online infrastructure'
+      Description: 'Role for GitHub Actions to deploy Todo List Online infrastructure'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

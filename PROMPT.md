@@ -1,11 +1,11 @@
-# Prompt para IA - Recriar Projeto Jogo da Velha Online
+# Prompt para IA - Recriar Projeto Todo List Online
 
 Use este prompt para pedir a uma IA que recrie o projeto completo seguindo a documentação.
 
 ## Prompt Completo
 
 ```
-Crie um novo repositório Git para o projeto "Jogo da Velha Online" seguindo EXATAMENTE o guia completo em docs/WORKSHOP.md.
+Crie um novo repositório Git para o projeto "Todo List Online" seguindo EXATAMENTE o guia completo em docs/WORKSHOP.md.
 
 Requisitos:
 1. Siga TODOS os passos do WORKSHOP.md na ordem
@@ -29,8 +29,8 @@ Após criar tudo, faça commit inicial e push diretamente para origin/main.
 
 ```
 Siga o guia completo em docs/WORKSHOP.md para criar um novo repositório com o projeto 
-Jogo da Velha Online. Use todos os códigos, configurações e instruções fornecidos no 
-documento. O projeto deve incluir backend (AWS Lambda + WebSocket), frontend (Next.js), 
+Todo List Online. Use todos os códigos, configurações e instruções fornecidos no 
+documento. O projeto deve incluir backend (AWS Lambda + REST API), frontend (Next.js), 
 Husky para validações, e GitHub Actions para CI/CD. Faça push diretamente na main (sem criar outra branch).
 ```
 
@@ -43,8 +43,7 @@ Husky para validações, e GitHub Actions para CI/CD. Faça push diretamente na 
 - [ ] Configurar ESLint (.eslintrc.json)
 - [ ] Configurar Jest (jest.config.js para backend e frontend)
 - [ ] Criar serverless.yml completo
-- [ ] Implementar todas as Lambda functions
-- [ ] Criar lógica do jogo
+- [ ] Implementar todas as Lambda functions (CRUD de todos)
 - [ ] Criar frontend Next.js completo
 - [ ] Configurar Husky e hooks
 - [ ] Criar workflow GitHub Actions
